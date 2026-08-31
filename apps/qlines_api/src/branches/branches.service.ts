@@ -1,5 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { Branch } from './models/branch';
+import { NearbyBranch } from './models/nearby-branch';
+import { calculateDistanceKm } from './utils/calculate-distance';
+import { TravelMode } from './models/travel-mode';
+import { calculateTravelDurationMinutes } from './utils/calculate-travel-duration';
 
 @Injectable()
 export class BranchesService {
@@ -80,5 +84,35 @@ export class BranchesService {
     return this.branches.filter(
       (branch) => branch.organizationId === organizationId && branch.isActive,
     );
+  }
+
+  findNearbyByOrganizationId(
+    organizationId: string,
+    userLatitude: number,
+    userLongitude: number,
+    travelMode: TravelMode,
+  ): NearbyBranch[] {
+    return this.findByOrganizationId(organizationId)
+      .map((branch) => {
+        const distanceKm = calculateDistanceKm(
+          userLatitude,
+          userLongitude,
+          branch.latitude,
+          branch.longitude,
+        );
+
+        return {
+          ...branch,
+          distanceKm: Number(distanceKm.toFixed(2)),
+          travelMode,
+          estimatedTravelMinutes: calculateTravelDurationMinutes(
+            distanceKm,
+            travelMode,
+          ),
+        };
+      })
+      .sort((firstBranch, secondBranch) => {
+        return firstBranch.distanceKm - secondBranch.distanceKm;
+      });
   }
 }
