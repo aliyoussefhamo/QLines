@@ -1,5 +1,4 @@
 export type Organization = {
-  // fields
   id: string;
   name: string;
   category: string;

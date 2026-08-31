@@ -1,0 +1,84 @@
+import { Injectable } from '@nestjs/common';
+import { Branch } from './models/branch';
+
+@Injectable()
+export class BranchesService {
+  private readonly branches: Branch[] = [
+    {
+      id: 'citizen-center-mazzeh',
+      organizationId: 'citizen-center',
+      name: 'مركز خدمة المواطن - المزة',
+      address: 'المزة، دمشق',
+      latitude: 33.5038,
+      longitude: 36.2501,
+      peopleWaiting: 12,
+      averageServiceDurationMinutes: 8,
+      isActive: true,
+    },
+    {
+      id: 'citizen-center-baramekeh',
+      organizationId: 'citizen-center',
+      name: 'مركز خدمة المواطن - البرامكة',
+      address: 'البرامكة، دمشق',
+      latitude: 33.5062,
+      longitude: 36.2911,
+      peopleWaiting: 7,
+      averageServiceDurationMinutes: 8,
+      isActive: true,
+    },
+    {
+      id: 'citizen-center-bab-touma',
+      organizationId: 'citizen-center',
+      name: 'مركز خدمة المواطن - باب توما',
+      address: 'باب توما، دمشق',
+      latitude: 33.5148,
+      longitude: 36.3164,
+      peopleWaiting: 18,
+      averageServiceDurationMinutes: 8,
+      isActive: true,
+    },
+    {
+      id: 'telecom-mazzeh',
+      organizationId: 'telecom',
+      name: 'فرع الاتصالات - المزة',
+      address: 'المزة، دمشق',
+      latitude: 33.5017,
+      longitude: 36.2478,
+      peopleWaiting: 9,
+      averageServiceDurationMinutes: 6,
+      isActive: true,
+    },
+    {
+      id: 'telecom-victoria',
+      organizationId: 'telecom',
+      name: 'فرع الاتصالات - الحريقة',
+      address: 'الحريقة، دمشق',
+      latitude: 33.5102,
+      longitude: 36.3047,
+      peopleWaiting: 14,
+      averageServiceDurationMinutes: 6,
+      isActive: true,
+    },
+    {
+      id: 'university-baramekeh',
+      organizationId: 'university',
+      name: 'مركز الخدمات الجامعية - البرامكة',
+      address: 'البرامكة، دمشق',
+      latitude: 33.5053,
+      longitude: 36.2894,
+      peopleWaiting: 20,
+      averageServiceDurationMinutes: 10,
+      isActive: true,
+    },
+  ];
+
+  findAll(): Branch[] {
+    return this.branches;
+  }
+
+  findByOrganizationId(organizationId: string): Branch[] {
+    return this.branches.filter(
+      (branch) => branch.organizationId === organizationId && branch.isActive,
+    );
+  }
+}
