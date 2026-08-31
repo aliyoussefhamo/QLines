@@ -1,0 +1,9 @@
+# Local scratch and generated deliverables
+work/
+outputs/
+
+# Editor and operating-system files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
