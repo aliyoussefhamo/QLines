@@ -3,6 +3,11 @@
 QLines is a modern rebuild of a 2019 graduation project for managing service
 queues. The repository grows through small, tested vertical slices.
 
+## Applications
+
+- `apps/qline_app`: Flutter customer application.
+- `apps/qlines_api`: NestJS backend API.
+
 ## First milestone
 
 - Browse branches and see queue metrics.

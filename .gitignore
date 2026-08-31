@@ -7,3 +7,9 @@ outputs/
 .idea/
 .DS_Store
 Thumbs.db
+
+# Node / NestJS
+node_modules/
+dist/
+coverage/
+.env
