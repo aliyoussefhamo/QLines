@@ -4,6 +4,7 @@ import { NearbyBranch } from './models/nearby-branch';
 import { calculateDistanceKm } from './utils/calculate-distance';
 import { TravelMode } from './models/travel-mode';
 import { calculateTravelDurationMinutes } from './utils/calculate-travel-duration';
+import { calculateQueueDurationMinutes } from './utils/calculate-queue-duration';
 
 @Injectable()
 export class BranchesService {
@@ -16,6 +17,8 @@ export class BranchesService {
       latitude: 33.5038,
       longitude: 36.2501,
       peopleWaiting: 12,
+      bookingsAhead: 4,
+      activeServiceCounters: 2,
       averageServiceDurationMinutes: 8,
       isActive: true,
     },
@@ -27,6 +30,8 @@ export class BranchesService {
       latitude: 33.5062,
       longitude: 36.2911,
       peopleWaiting: 7,
+      bookingsAhead: 3,
+      activeServiceCounters: 2,
       averageServiceDurationMinutes: 8,
       isActive: true,
     },
@@ -38,6 +43,8 @@ export class BranchesService {
       latitude: 33.5148,
       longitude: 36.3164,
       peopleWaiting: 18,
+      bookingsAhead: 5,
+      activeServiceCounters: 3,
       averageServiceDurationMinutes: 8,
       isActive: true,
     },
@@ -49,6 +56,8 @@ export class BranchesService {
       latitude: 33.5017,
       longitude: 36.2478,
       peopleWaiting: 9,
+      bookingsAhead: 2,
+      activeServiceCounters: 2,
       averageServiceDurationMinutes: 6,
       isActive: true,
     },
@@ -60,6 +69,8 @@ export class BranchesService {
       latitude: 33.5102,
       longitude: 36.3047,
       peopleWaiting: 14,
+      bookingsAhead: 4,
+      activeServiceCounters: 2,
       averageServiceDurationMinutes: 6,
       isActive: true,
     },
@@ -71,6 +82,8 @@ export class BranchesService {
       latitude: 33.5053,
       longitude: 36.2894,
       peopleWaiting: 20,
+      bookingsAhead: 6,
+      activeServiceCounters: 3,
       averageServiceDurationMinutes: 10,
       isActive: true,
     },
@@ -101,14 +114,37 @@ export class BranchesService {
           branch.longitude,
         );
 
+        const estimatedTravelMinutes = calculateTravelDurationMinutes(
+          distanceKm,
+          travelMode,
+        );
+
+        const peopleAhead = branch.peopleWaiting + branch.bookingsAhead;
+
+        const estimatedQueueMinutes = calculateQueueDurationMinutes(
+          branch.peopleWaiting,
+          branch.bookingsAhead,
+          branch.activeServiceCounters,
+          branch.averageServiceDurationMinutes,
+        );
+
+        const estimatedWaitAfterArrivalMinutes = Math.max(
+          0,
+          estimatedQueueMinutes - estimatedTravelMinutes,
+        );
+
+        const estimatedTotalMinutes =
+          estimatedTravelMinutes + estimatedWaitAfterArrivalMinutes;
+
         return {
           ...branch,
           distanceKm: Number(distanceKm.toFixed(2)),
           travelMode,
-          estimatedTravelMinutes: calculateTravelDurationMinutes(
-            distanceKm,
-            travelMode,
-          ),
+          estimatedTravelMinutes,
+          peopleAhead,
+          estimatedQueueMinutes,
+          estimatedWaitAfterArrivalMinutes,
+          estimatedTotalMinutes,
         };
       })
       .sort((firstBranch, secondBranch) => {

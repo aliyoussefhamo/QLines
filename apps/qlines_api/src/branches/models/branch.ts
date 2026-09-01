@@ -6,6 +6,8 @@ export type Branch = {
   latitude: number;
   longitude: number;
   peopleWaiting: number;
+  bookingsAhead: number;
+  activeServiceCounters: number;
   averageServiceDurationMinutes: number;
   isActive: boolean;
 };
