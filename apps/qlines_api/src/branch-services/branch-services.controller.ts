@@ -7,7 +7,9 @@ export class BranchServicesController {
   constructor(private readonly branchServicesService: BranchServicesService) {}
 
   @Get()
-  findByBranchId(@Param('branchId') branchId: string): BranchService[] {
+  findByBranchId(
+    @Param('branchId') branchId: string,
+  ): Promise<BranchService[]> {
     return this.branchServicesService.findByBranchId(branchId);
   }
 }

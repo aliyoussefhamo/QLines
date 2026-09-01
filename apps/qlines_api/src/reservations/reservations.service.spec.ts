@@ -10,7 +10,20 @@ describe('ReservationsService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ReservationsService,
-        BranchServicesService,
+        {
+          provide: BranchServicesService,
+          useValue: {
+            findById: jest.fn().mockResolvedValue({
+              id: 'mazzeh-civil-record',
+              branchId: 'citizen-center-mazzeh',
+              peopleWaiting: 6,
+              bookingsAhead: 2,
+              activeServiceCounters: 2,
+              averageServiceDurationMinutes: 8,
+              isAvailable: true,
+            }),
+          },
+        },
         {
           provide: BranchesService,
           useValue: {

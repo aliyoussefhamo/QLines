@@ -31,7 +31,7 @@ export class ReservationsService {
       throw new NotFoundException('Branch not found');
     }
 
-    const branchService = this.branchServicesService.findById(
+    const branchService = await this.branchServicesService.findById(
       createReservationDto.serviceId,
     );
 
