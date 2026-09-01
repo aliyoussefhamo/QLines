@@ -18,24 +18,26 @@ export class ReservationsController {
   @Post('verify-qr')
   verifyQr(
     @Body() verifyReservationQrDto: VerifyReservationQrDto,
-  ): Reservation {
+  ): Promise<Reservation> {
     return this.reservationsService.verifyQrToken(
       verifyReservationQrDto.qrToken,
     );
   }
 
   @Get()
-  findAll(): Reservation[] {
+  findAll(): Promise<Reservation[]> {
     return this.reservationsService.findAll();
   }
 
   @Get(':reservationId')
-  findById(@Param('reservationId') reservationId: string): Reservation {
+  findById(
+    @Param('reservationId') reservationId: string,
+  ): Promise<Reservation> {
     return this.reservationsService.findById(reservationId);
   }
 
   @Patch(':reservationId/cancel')
-  cancel(@Param('reservationId') reservationId: string): Reservation {
+  cancel(@Param('reservationId') reservationId: string): Promise<Reservation> {
     return this.reservationsService.cancel(reservationId);
   }
 }
