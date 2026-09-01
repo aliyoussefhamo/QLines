@@ -13,7 +13,7 @@ void main() {
       const FakeLocationService(),
       const HaversineDistanceCalculator(),
     );
-    await viewModel.loadBranches('org-1');
+    await viewModel.loadBranches('org-1', 'Test organization');
     expect(viewModel.status, BranchesStatus.success);
     expect(viewModel.branches, hasLength(1));
     expect(viewModel.errorMessage, isNull);
@@ -25,7 +25,7 @@ void main() {
       const FakeLocationService(),
       const HaversineDistanceCalculator(),
     );
-    await viewModel.loadBranches('org-1');
+    await viewModel.loadBranches('org-1', 'Test organization');
     expect(viewModel.status, BranchesStatus.failure);
     expect(viewModel.errorMessage, isNotEmpty);
   });
@@ -33,24 +33,28 @@ void main() {
 
 class _SuccessfulRepository implements BranchRepository {
   @override
-  Future<List<Branch>> getBranchesByOrganization(String organizationId) async =>
-      const [
-        Branch(
-          id: '1',
-          organizationId: 'org-1',
-          name: 'Test branch',
-          organizationName: 'Test organization',
-          address: 'Test address',
-          peopleWaiting: 2,
-          estimatedWaitMinutes: 5,
-          isOpen: true,
-          location: GeoPoint(latitude: 33.52, longitude: 36.28),
-        ),
-      ];
+  Future<List<Branch>> getBranchesByOrganization(
+    String organizationId,
+    String organizationName,
+  ) async => [
+    Branch(
+      id: '1',
+      organizationId: 'org-1',
+      name: 'Test branch',
+      organizationName: organizationName,
+      address: 'Test address',
+      peopleWaiting: 2,
+      estimatedWaitMinutes: 5,
+      isOpen: true,
+      location: GeoPoint(latitude: 33.52, longitude: 36.28),
+    ),
+  ];
 }
 
 class _FailingRepository implements BranchRepository {
   @override
-  Future<List<Branch>> getBranchesByOrganization(String organizationId) =>
-      throw Exception('network');
+  Future<List<Branch>> getBranchesByOrganization(
+    String organizationId,
+    String organizationName,
+  ) => throw Exception('network');
 }

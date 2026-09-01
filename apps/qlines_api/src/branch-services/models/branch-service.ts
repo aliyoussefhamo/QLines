@@ -9,6 +9,9 @@ export type BranchService = {
   notes: string[];
   feeAmount: number | null;
   currency: string | null;
+  peopleWaiting: number;
+  bookingsAhead: number;
+  activeServiceCounters: number;
   averageServiceDurationMinutes: number;
   isAvailable: boolean;
 };

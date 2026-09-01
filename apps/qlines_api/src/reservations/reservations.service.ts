@@ -49,9 +49,9 @@ export class ReservationsService {
     ).length;
 
     const estimatedWaitMinutes = calculateQueueDurationMinutes(
-      branch.peopleWaiting,
-      branch.bookingsAhead + activeReservationsAhead,
-      branch.activeServiceCounters,
+      branchService.peopleWaiting,
+      branchService.bookingsAhead + activeReservationsAhead,
+      branchService.activeServiceCounters,
       branchService.averageServiceDurationMinutes,
     );
 

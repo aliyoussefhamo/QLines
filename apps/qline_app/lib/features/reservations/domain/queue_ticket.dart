@@ -21,8 +21,9 @@ class QueueTicket {
   final int peopleAhead;
   final int estimatedWaitMinutes;
   final int estimatedTravelMinutes;
-  int get estimatedTotalMinutes =>
-      estimatedWaitMinutes + estimatedTravelMinutes;
+  int get estimatedTotalMinutes => estimatedWaitMinutes > estimatedTravelMinutes
+      ? estimatedWaitMinutes
+      : estimatedTravelMinutes;
   final DateTime createdAt;
   final TicketStatus status;
   final String qrToken;

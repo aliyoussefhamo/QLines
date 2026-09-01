@@ -30,4 +30,33 @@ class QueueService {
   final int peopleWaiting;
   final int estimatedWaitMinutes;
   final bool isAvailable;
+
+  factory QueueService.fromJson(Map<String, dynamic> json) {
+    final peopleWaiting = json['peopleWaiting'] as int;
+    final bookingsAhead = json['bookingsAhead'] as int;
+    final activeCounters = json['activeServiceCounters'] as int;
+    final averageDuration = json['averageServiceDurationMinutes'] as int;
+    final serviceRounds = activeCounters > 0
+        ? ((peopleWaiting + bookingsAhead) / activeCounters).ceil()
+        : 0;
+
+    return QueueService(
+      id: json['id'] as String,
+      branchId: json['branchId'] as String,
+      name: json['name'] as String,
+      description: json['description'] as String,
+      requiredDocuments: List<String>.from(
+        json['requiredDocuments'] as List<dynamic>,
+      ),
+      requirements: List<String>.from(json['requirements'] as List<dynamic>),
+      steps: List<String>.from(json['steps'] as List<dynamic>),
+      notes: List<String>.from(json['notes'] as List<dynamic>),
+      feeAmount: json['feeAmount'] as num?,
+      currency: json['currency'] as String?,
+      estimatedDurationMinutes: averageDuration,
+      peopleWaiting: peopleWaiting + bookingsAhead,
+      estimatedWaitMinutes: serviceRounds * averageDuration,
+      isAvailable: json['isAvailable'] as bool,
+    );
+  }
 }

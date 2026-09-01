@@ -4,7 +4,10 @@ import '../domain/branch_repository.dart';
 
 class FakeBranchRepository implements BranchRepository {
   @override
-  Future<List<Branch>> getBranchesByOrganization(String organizationId) async {
+  Future<List<Branch>> getBranchesByOrganization(
+    String organizationId,
+    String organizationName,
+  ) async {
     await Future<void>.delayed(const Duration(milliseconds: 350));
 
     final branches = const [

@@ -30,7 +30,10 @@ class _BranchesScreenState extends State<BranchesScreen> {
   void initState() {
     super.initState();
     widget.viewModel.addListener(_refresh);
-    widget.viewModel.loadBranches(widget.organization.id);
+    widget.viewModel.loadBranches(
+      widget.organization.id,
+      widget.organization.name,
+    );
   }
 
   @override
@@ -86,7 +89,10 @@ class _BranchesScreenState extends State<BranchesScreen> {
       ),
       BranchesStatus.failure => _ErrorView(
         message: widget.viewModel.errorMessage!,
-        onRetry: () => widget.viewModel.loadBranches(widget.organization.id),
+        onRetry: () => widget.viewModel.loadBranches(
+          widget.organization.id,
+          widget.organization.name,
+        ),
       ),
       BranchesStatus.success => ListView.separated(
         itemCount: widget.viewModel.branches.length,

@@ -1,0 +1,51 @@
+import 'dart:convert';
+
+import 'package:http/http.dart' as http;
+
+import 'api_config.dart';
+import 'api_exception.dart';
+
+class ApiClient {
+  ApiClient({http.Client? client}) : _client = client ?? http.Client();
+
+  final http.Client _client;
+
+  Future<Object?> get(String path) async {
+    final response = await _client.get(
+      Uri.parse('${ApiConfig.baseUrl}$path'),
+      headers: const {'Accept': 'application/json'},
+    );
+
+    return _decodeResponse(response);
+  }
+
+  Future<Object?> post(
+    String path, {
+    required Map<String, Object?> body,
+  }) async {
+    final response = await _client.post(
+      Uri.parse('${ApiConfig.baseUrl}$path'),
+      headers: const {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode(body),
+    );
+
+    return _decodeResponse(response);
+  }
+
+  Object? _decodeResponse(http.Response response) {
+    final body = jsonDecode(utf8.decode(response.bodyBytes));
+
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      final message = body is Map<String, dynamic>
+          ? body['message']?.toString() ?? 'تعذر تنفيذ الطلب'
+          : 'تعذر تنفيذ الطلب';
+
+      throw ApiException(message, statusCode: response.statusCode);
+    }
+
+    return body;
+  }
+}

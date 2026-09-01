@@ -25,14 +25,20 @@ class BranchesViewModel extends ChangeNotifier {
   String? errorMessage;
   TravelMode travelMode = TravelMode.walking;
 
-  Future<void> loadBranches(String organizationId) async {
+  Future<void> loadBranches(
+    String organizationId,
+    String organizationName,
+  ) async {
     status = BranchesStatus.loading;
     errorMessage = null;
     notifyListeners();
     try {
       final userLocation = await _locationService.getCurrentLocation();
       final loadedBranches = List<Branch>.of(
-        await _repository.getBranchesByOrganization(organizationId),
+        await _repository.getBranchesByOrganization(
+          organizationId,
+          organizationName,
+        ),
       );
       final distances = {
         for (final branch in loadedBranches)
