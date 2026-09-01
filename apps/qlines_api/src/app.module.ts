@@ -2,9 +2,10 @@ import { Module } from '@nestjs/common';
 import { HealthController } from './health/health.controller';
 import { OrganizationsModule } from './organizations/organizations.module';
 import { BranchesModule } from './branches/branches.module';
+import { BranchServicesModule } from './branch-services/branch-services.module';
 
 @Module({
   controllers: [HealthController],
-  imports: [OrganizationsModule, BranchesModule],
+  imports: [OrganizationsModule, BranchesModule, BranchServicesModule],
 })
 export class AppModule {}
