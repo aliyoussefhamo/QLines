@@ -1,35 +1,30 @@
 import { Injectable } from '@nestjs/common';
-import { Organization } from './models/organization';
+import { InjectRepository } from '@nestjs/typeorm';
+import type { Repository } from 'typeorm';
+import { OrganizationEntity } from './entities/organization.entity';
+import type { Organization } from './models/organization';
 
 @Injectable()
 export class OrganizationsService {
-  private readonly organizations: Organization[] = [
-    {
-      id: 'citizen-center',
-      name: 'مركز خدمة المواطن',
-      category: 'خدمات حكومية',
-      branchCount: 3,
-      isActive: true,
-    },
+  constructor(
+    @InjectRepository(OrganizationEntity)
+    private readonly organizationRepository: Repository<OrganizationEntity>,
+  ) {}
 
-    {
-      id: 'telecom',
-      name: 'شركة الاتصالات',
-      category: 'اتصالات',
-      branchCount: 2,
-      isActive: true,
-    },
+  async findAll(): Promise<Organization[]> {
+    const organizations = await this.organizationRepository.find({
+      where: { isActive: true },
+      order: { name: 'ASC' },
+    });
 
-    {
-      id: 'university',
-      name: 'مركز الخدمات الجامعية',
-      category: 'تعليم',
-      branchCount: 1,
-      isActive: true,
-    },
-  ];
-
-  findAll(): Organization[] {
-    return this.organizations;
+    return organizations.map(
+      ({ id, name, category, branchCount, isActive }) => ({
+        id,
+        name,
+        category,
+        branchCount,
+        isActive,
+      }),
+    );
   }
 }

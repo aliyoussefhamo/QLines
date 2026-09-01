@@ -4,27 +4,42 @@ import { OrganizationsService } from './organizations.service';
 
 describe('OrganizationsController', () => {
   let controller: OrganizationsController;
-  let service: OrganizationsService;
+  const organizations = [
+    {
+      id: 'citizen-center',
+      name: 'مركز خدمة المواطن',
+      category: 'خدمات حكومية',
+      branchCount: 3,
+      isActive: true,
+    },
+  ];
+  const organizationsService = {
+    findAll: jest.fn(),
+  };
 
   beforeEach(async () => {
+    organizationsService.findAll.mockReset();
+    organizationsService.findAll.mockResolvedValue(organizations);
+
     const module: TestingModule = await Test.createTestingModule({
       controllers: [OrganizationsController],
-      providers: [OrganizationsService],
+      providers: [
+        {
+          provide: OrganizationsService,
+          useValue: organizationsService,
+        },
+      ],
     }).compile();
 
     controller = module.get<OrganizationsController>(OrganizationsController);
-
-    service = module.get<OrganizationsService>(OrganizationsService);
   });
 
   it('should be defined', () => {
     expect(controller).toBeDefined();
   });
 
-  it('should return all organizations', () => {
-    const organizations = controller.findAll();
-
-    expect(organizations).toEqual(service.findAll());
-    expect(organizations).toHaveLength(3);
+  it('should return all organizations', async () => {
+    await expect(controller.findAll()).resolves.toEqual(organizations);
+    expect(organizationsService.findAll).toHaveBeenCalledTimes(1);
   });
 });
