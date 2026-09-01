@@ -8,11 +8,13 @@ class OrganizationsScreen extends StatefulWidget {
     super.key,
     required this.viewModel,
     required this.onOrganizationSelected,
+    required this.onMyReservations,
   });
 
   final OrganizationsViewModel viewModel;
   final void Function(BuildContext context, Organization organization)
   onOrganizationSelected;
+  final void Function(BuildContext context) onMyReservations;
 
   @override
   State<OrganizationsScreen> createState() => _OrganizationsScreenState();
@@ -42,9 +44,9 @@ class _OrganizationsScreenState extends State<OrganizationsScreen> {
         title: const Text('QLines'),
         actions: [
           IconButton(
-            onPressed: () {},
-            tooltip: 'الإشعارات',
-            icon: const Icon(Icons.notifications_outlined),
+            onPressed: () => widget.onMyReservations(context),
+            tooltip: 'حجوزاتي',
+            icon: const Icon(Icons.confirmation_number_outlined),
           ),
         ],
       ),

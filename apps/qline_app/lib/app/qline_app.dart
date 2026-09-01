@@ -12,6 +12,9 @@ import '../features/organizations/data/api_organization_repository.dart';
 import '../features/organizations/presentation/organizations_screen.dart';
 import '../features/organizations/presentation/organizations_view_model.dart';
 import '../features/reservations/data/api_reservation_repository.dart';
+import '../features/reservations/data/api_my_reservations_repository.dart';
+import '../features/reservations/presentation/my_reservations_screen.dart';
+import '../features/reservations/presentation/my_reservations_view_model.dart';
 import '../features/reservations/presentation/reservation_screen.dart';
 import '../features/reservations/presentation/reservation_view_model.dart';
 import '../features/services/data/api_service_repository.dart';
@@ -49,6 +52,17 @@ class QlineApp extends StatelessWidget {
   Widget _organizationsFlow() {
     return OrganizationsScreen(
       viewModel: OrganizationsViewModel(ApiOrganizationRepository(_apiClient)),
+      onMyReservations: (context) {
+        Navigator.of(context).push(
+          MaterialPageRoute<void>(
+            builder: (_) => MyReservationsScreen(
+              viewModel: MyReservationsViewModel(
+                ApiMyReservationsRepository(_apiClient),
+              ),
+            ),
+          ),
+        );
+      },
       onOrganizationSelected: (context, organization) {
         Navigator.of(context).push(
           MaterialPageRoute<void>(
