@@ -5,10 +5,12 @@ import { ReservationsController } from './reservations.controller';
 import { ReservationsService } from './reservations.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ReservationEntity } from './entities/reservation.entity';
+import { AuthModule } from '../auth/auth.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([ReservationEntity]),
+    AuthModule,
     BranchesModule,
     BranchServicesModule,
   ],

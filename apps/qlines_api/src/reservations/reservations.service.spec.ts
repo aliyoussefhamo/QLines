@@ -58,8 +58,7 @@ describe('ReservationsService', () => {
   });
 
   it('should persist a reservation with the next ticket number', async () => {
-    const reservation = await service.create({
-      userId: 'demo-user',
+    const reservation = await service.create('user-1', {
       branchId: 'citizen-center-mazzeh',
       serviceId: 'mazzeh-civil-record',
     });
@@ -82,14 +81,14 @@ describe('ReservationsService', () => {
     } as ReservationEntity;
     jest.mocked(repository.findOne).mockResolvedValue(entity);
 
-    await expect(service.cancel(entity.id)).resolves.toEqual(
+    await expect(service.cancel(entity.id, entity.userId)).resolves.toEqual(
       expect.objectContaining({ status: ReservationStatus.Cancelled }),
     );
   });
 
   it('should reject an unknown reservation id', async () => {
-    await expect(service.findById('missing-reservation')).rejects.toThrow(
-      'Reservation not found',
-    );
+    await expect(
+      service.findById('missing-reservation', 'user-1'),
+    ).rejects.toThrow('Reservation not found');
   });
 });

@@ -9,11 +9,22 @@ class ApiClient {
   ApiClient({http.Client? client}) : _client = client ?? http.Client();
 
   final http.Client _client;
+  String? _accessToken;
+
+  void setAccessToken(String accessToken) {
+    _accessToken = accessToken;
+  }
+
+  Map<String, String> _headers({bool hasBody = false}) => {
+    'Accept': 'application/json',
+    if (hasBody) 'Content-Type': 'application/json',
+    if (_accessToken != null) 'Authorization': 'Bearer $_accessToken',
+  };
 
   Future<Object?> get(String path) async {
     final response = await _client.get(
       Uri.parse('${ApiConfig.baseUrl}$path'),
-      headers: const {'Accept': 'application/json'},
+      headers: _headers(),
     );
 
     return _decodeResponse(response);
@@ -25,10 +36,7 @@ class ApiClient {
   }) async {
     final response = await _client.post(
       Uri.parse('${ApiConfig.baseUrl}$path'),
-      headers: const {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-      },
+      headers: _headers(hasBody: true),
       body: jsonEncode(body),
     );
 

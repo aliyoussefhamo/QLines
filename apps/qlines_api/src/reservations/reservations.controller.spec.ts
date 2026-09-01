@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ReservationsController } from './reservations.controller';
 import { ReservationsService } from './reservations.service';
+import { AuthGuard } from '../auth/auth.guard';
 
 describe('ReservationsController', () => {
   let controller: ReservationsController;
@@ -25,17 +26,27 @@ describe('ReservationsController', () => {
           useValue: { create: jest.fn().mockResolvedValue(reservation) },
         },
       ],
-    }).compile();
+    })
+      .overrideGuard(AuthGuard)
+      .useValue({ canActivate: () => true })
+      .compile();
     controller = module.get(ReservationsController);
   });
 
   it('should create a reservation', async () => {
     await expect(
-      controller.create({
-        userId: 'demo-user',
-        branchId: 'citizen-center-mazzeh',
-        serviceId: 'mazzeh-civil-record',
-      }),
+      controller.create(
+        {
+          sub: 'user-1',
+          email: 'ali@example.com',
+          iat: 1,
+          exp: 2,
+        },
+        {
+          branchId: 'citizen-center-mazzeh',
+          serviceId: 'mazzeh-civil-record',
+        },
+      ),
     ).resolves.toEqual(reservation);
   });
 });

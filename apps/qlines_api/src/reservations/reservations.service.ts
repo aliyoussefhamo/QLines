@@ -24,6 +24,7 @@ export class ReservationsService {
   ) {}
 
   async create(
+    userId: string,
     createReservationDto: CreateReservationDto,
   ): Promise<Reservation> {
     const branch = await this.branchesService.findById(
@@ -65,7 +66,7 @@ export class ReservationsService {
     const createdAt = new Date();
     const entity = this.reservationsRepository.create({
       id: randomUUID(),
-      userId: createReservationDto.userId,
+      userId,
       branchId: branch.id,
       serviceId: branchService.id,
       ticketNumber: (lastBranchReservation?.ticketNumber ?? 0) + 1,
@@ -80,20 +81,21 @@ export class ReservationsService {
     return this.toReservation(await this.reservationsRepository.save(entity));
   }
 
-  async findAll(): Promise<Reservation[]> {
+  async findByUserId(userId: string): Promise<Reservation[]> {
     const reservations = await this.reservationsRepository.find({
+      where: { userId },
       order: { createdAt: 'DESC' },
     });
     return reservations.map((reservation) => this.toReservation(reservation));
   }
 
-  async findById(reservationId: string): Promise<Reservation> {
-    const reservation = await this.findEntityById(reservationId);
+  async findById(reservationId: string, userId: string): Promise<Reservation> {
+    const reservation = await this.findEntityById(reservationId, userId);
     return this.toReservation(reservation);
   }
 
-  async cancel(reservationId: string): Promise<Reservation> {
-    const reservation = await this.findEntityById(reservationId);
+  async cancel(reservationId: string, userId: string): Promise<Reservation> {
+    const reservation = await this.findEntityById(reservationId, userId);
     if (reservation.status !== ReservationStatus.Waiting) {
       throw new BadRequestException(
         'Only waiting reservations can be cancelled',
@@ -123,9 +125,10 @@ export class ReservationsService {
 
   private async findEntityById(
     reservationId: string,
+    userId: string,
   ): Promise<ReservationEntity> {
     const reservation = await this.reservationsRepository.findOne({
-      where: { id: reservationId },
+      where: { id: reservationId, userId },
     });
     if (!reservation) {
       throw new NotFoundException('Reservation not found');

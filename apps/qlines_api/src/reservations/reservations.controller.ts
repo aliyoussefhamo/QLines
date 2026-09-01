@@ -1,4 +1,15 @@
-import { Body, Controller, Get, Param, Patch, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
+import { AuthGuard } from '../auth/auth.guard';
+import { CurrentUser } from '../auth/current-user.decorator';
+import type { TokenPayload } from '../auth/token.service';
 import { CreateReservationDto } from './dto/create-reservation.dto';
 import { VerifyReservationQrDto } from './dto/verify-reservation-qr.dto';
 import type { Reservation } from './models/reservation';
@@ -9,10 +20,12 @@ export class ReservationsController {
   constructor(private readonly reservationsService: ReservationsService) {}
 
   @Post()
+  @UseGuards(AuthGuard)
   create(
+    @CurrentUser() user: TokenPayload,
     @Body() createReservationDto: CreateReservationDto,
   ): Promise<Reservation> {
-    return this.reservationsService.create(createReservationDto);
+    return this.reservationsService.create(user.sub, createReservationDto);
   }
 
   @Post('verify-qr')
@@ -25,19 +38,26 @@ export class ReservationsController {
   }
 
   @Get()
-  findAll(): Promise<Reservation[]> {
-    return this.reservationsService.findAll();
+  @UseGuards(AuthGuard)
+  findAll(@CurrentUser() user: TokenPayload): Promise<Reservation[]> {
+    return this.reservationsService.findByUserId(user.sub);
   }
 
   @Get(':reservationId')
+  @UseGuards(AuthGuard)
   findById(
+    @CurrentUser() user: TokenPayload,
     @Param('reservationId') reservationId: string,
   ): Promise<Reservation> {
-    return this.reservationsService.findById(reservationId);
+    return this.reservationsService.findById(reservationId, user.sub);
   }
 
   @Patch(':reservationId/cancel')
-  cancel(@Param('reservationId') reservationId: string): Promise<Reservation> {
-    return this.reservationsService.cancel(reservationId);
+  @UseGuards(AuthGuard)
+  cancel(
+    @CurrentUser() user: TokenPayload,
+    @Param('reservationId') reservationId: string,
+  ): Promise<Reservation> {
+    return this.reservationsService.cancel(reservationId, user.sub);
   }
 }

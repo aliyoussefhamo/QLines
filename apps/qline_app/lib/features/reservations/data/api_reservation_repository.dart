@@ -17,12 +17,7 @@ class ApiReservationRepository implements ReservationRepository {
   }) async {
     final response = await _apiClient.post(
       '/reservations',
-      body: {
-        // Temporary until authentication supplies the signed-in user id.
-        'userId': 'demo-user',
-        'branchId': branchId,
-        'serviceId': serviceId,
-      },
+      body: {'branchId': branchId, 'serviceId': serviceId},
     );
 
     if (response is! Map<String, dynamic>) {

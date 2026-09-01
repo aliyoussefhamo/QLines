@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import '../core/location/distance_calculator.dart';
 import '../core/location/fake_location_service.dart';
 import '../core/network/api_client.dart';
+import '../features/auth/data/api_auth_repository.dart';
+import '../features/auth/presentation/login_screen.dart';
 import '../features/branches/data/api_branch_repository.dart';
 import '../features/branches/presentation/branches_screen.dart';
 import '../features/branches/presentation/branches_view_model.dart';
@@ -33,53 +35,62 @@ class QlineApp extends StatelessWidget {
         textDirection: TextDirection.rtl,
         child: child ?? const SizedBox.shrink(),
       ),
-      home: OrganizationsScreen(
-        viewModel: OrganizationsViewModel(
-          ApiOrganizationRepository(_apiClient),
-        ),
-        onOrganizationSelected: (context, organization) {
-          Navigator.of(context).push(
-            MaterialPageRoute<void>(
-              builder: (_) => BranchesScreen(
-                organization: organization,
-                viewModel: BranchesViewModel(
-                  ApiBranchRepository(_apiClient),
-                  const FakeLocationService(),
-                  const HaversineDistanceCalculator(),
-                ),
-                onBranchSelected: (context, branch, travelMinutes) {
-                  Navigator.of(context).push(
-                    MaterialPageRoute<void>(
-                      builder: (_) => ServicesScreen(
-                        branch: branch,
-                        estimatedTravelMinutes: travelMinutes,
-                        viewModel: ServicesViewModel(
-                          ApiServiceRepository(_apiClient),
-                        ),
-                        onContinueReservation:
-                            (context, branch, service, travelMinutes) {
-                              Navigator.of(context).push(
-                                MaterialPageRoute<void>(
-                                  builder: (_) => ReservationScreen(
-                                    branch: branch,
-                                    service: service,
-                                    estimatedTravelMinutes: travelMinutes,
-                                    viewModel: ReservationViewModel(
-                                      ApiReservationRepository(_apiClient),
-                                    ),
-                                  ),
-                                ),
-                              );
-                            },
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
+      home: LoginScreen(
+        repository: ApiAuthRepository(_apiClient),
+        onAuthenticated: (context, _) {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute<void>(builder: (_) => _organizationsFlow()),
           );
         },
       ),
+    );
+  }
+
+  Widget _organizationsFlow() {
+    return OrganizationsScreen(
+      viewModel: OrganizationsViewModel(ApiOrganizationRepository(_apiClient)),
+      onOrganizationSelected: (context, organization) {
+        Navigator.of(context).push(
+          MaterialPageRoute<void>(
+            builder: (_) => BranchesScreen(
+              organization: organization,
+              viewModel: BranchesViewModel(
+                ApiBranchRepository(_apiClient),
+                const FakeLocationService(),
+                const HaversineDistanceCalculator(),
+              ),
+              onBranchSelected: (context, branch, travelMinutes) {
+                Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => ServicesScreen(
+                      branch: branch,
+                      estimatedTravelMinutes: travelMinutes,
+                      viewModel: ServicesViewModel(
+                        ApiServiceRepository(_apiClient),
+                      ),
+                      onContinueReservation:
+                          (context, branch, service, travelMinutes) {
+                            Navigator.of(context).push(
+                              MaterialPageRoute<void>(
+                                builder: (_) => ReservationScreen(
+                                  branch: branch,
+                                  service: service,
+                                  estimatedTravelMinutes: travelMinutes,
+                                  viewModel: ReservationViewModel(
+                                    ApiReservationRepository(_apiClient),
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        );
+      },
     );
   }
 }
