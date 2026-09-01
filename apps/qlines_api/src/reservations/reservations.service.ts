@@ -78,7 +78,52 @@ export class ReservationsService {
   }
 
   findAll(): Reservation[] {
-    return this.reservations;
+    return [...this.reservations];
+  }
+
+  findById(reservationId: string): Reservation {
+    const reservation = this.reservations.find(
+      (item) => item.id === reservationId,
+    );
+
+    if (!reservation) {
+      throw new NotFoundException('Reservation not found');
+    }
+
+    return reservation;
+  }
+
+  cancel(reservationId: string): Reservation {
+    const reservation = this.findById(reservationId);
+
+    if (reservation.status !== ReservationStatus.Waiting) {
+      throw new BadRequestException(
+        'Only waiting reservations can be cancelled',
+      );
+    }
+
+    reservation.status = ReservationStatus.Cancelled;
+
+    return reservation;
+  }
+
+  verifyQrToken(qrToken: string): Reservation {
+    const reservation = this.reservations.find(
+      (item) => item.qrToken === qrToken,
+    );
+
+    if (!reservation) {
+      throw new NotFoundException('Reservation QR code is invalid');
+    }
+
+    if (
+      reservation.status === ReservationStatus.Cancelled ||
+      reservation.status === ReservationStatus.Completed
+    ) {
+      throw new BadRequestException('Reservation QR code is no longer active');
+    }
+
+    return reservation;
   }
 
   private getNextTicketNumber(branchId: string): number {

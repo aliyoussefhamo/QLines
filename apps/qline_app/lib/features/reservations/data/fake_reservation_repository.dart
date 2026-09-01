@@ -11,9 +11,10 @@ class FakeReservationRepository implements ReservationRepository {
     required int estimatedTravelMinutes,
   }) async {
     await Future<void>.delayed(const Duration(milliseconds: 650));
+    final timestamp = DateTime.now().millisecondsSinceEpoch;
 
     return QueueTicket(
-      id: 'ticket-${DateTime.now().millisecondsSinceEpoch}',
+      id: 'ticket-$timestamp',
       number: 'A-104',
       branchId: branchId,
       serviceId: serviceId,
@@ -22,6 +23,7 @@ class FakeReservationRepository implements ReservationRepository {
       estimatedTravelMinutes: estimatedTravelMinutes,
       createdAt: DateTime.now(),
       status: TicketStatus.reserved,
+      qrToken: 'qlines-demo-$timestamp',
     );
   }
 }

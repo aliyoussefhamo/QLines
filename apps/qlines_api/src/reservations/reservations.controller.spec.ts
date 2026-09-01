@@ -31,4 +31,29 @@ describe('ReservationsController', () => {
     expect(reservation.ticketNumber).toBe(1);
     expect(reservation.status).toBe('waiting');
   });
+
+  it('should return and cancel a reservation', () => {
+    const createdReservation = controller.create({
+      userId: 'demo-user',
+      branchId: 'citizen-center-mazzeh',
+      serviceId: 'mazzeh-civil-record',
+    });
+
+    expect(controller.findById(createdReservation.id)).toEqual(
+      createdReservation,
+    );
+    expect(controller.cancel(createdReservation.id).status).toBe('cancelled');
+  });
+
+  it('should verify a reservation QR token', () => {
+    const createdReservation = controller.create({
+      userId: 'demo-user',
+      branchId: 'citizen-center-mazzeh',
+      serviceId: 'mazzeh-civil-record',
+    });
+
+    expect(
+      controller.verifyQr({ qrToken: createdReservation.qrToken }),
+    ).toEqual(createdReservation);
+  });
 });

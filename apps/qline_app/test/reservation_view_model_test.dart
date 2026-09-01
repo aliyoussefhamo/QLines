@@ -20,6 +20,7 @@ void main() {
     expect(repository.serviceId, 'service-2');
     expect(viewModel.status, ReservationStatus.success);
     expect(viewModel.ticket?.number, 'A-1');
+    expect(viewModel.ticket?.qrToken, 'test-qr-token');
   });
 
   test('exposes failure when reservation creation fails', () async {
@@ -63,6 +64,7 @@ class _SuccessfulRepository implements ReservationRepository {
       estimatedTravelMinutes: estimatedTravelMinutes,
       createdAt: DateTime(2026),
       status: TicketStatus.reserved,
+      qrToken: 'test-qr-token',
     );
   }
 }

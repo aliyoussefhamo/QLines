@@ -30,4 +30,58 @@ describe('ReservationsService', () => {
     expect(reservation.status).toBe('waiting');
     expect(reservation.qrToken).toBeTruthy();
   });
+
+  it('should find a reservation by id', () => {
+    const createdReservation = service.create({
+      userId: 'demo-user',
+      branchId: 'citizen-center-mazzeh',
+      serviceId: 'mazzeh-civil-record',
+    });
+
+    expect(service.findById(createdReservation.id)).toEqual(createdReservation);
+  });
+
+  it('should cancel a waiting reservation', () => {
+    const createdReservation = service.create({
+      userId: 'demo-user',
+      branchId: 'citizen-center-mazzeh',
+      serviceId: 'mazzeh-civil-record',
+    });
+
+    const cancelledReservation = service.cancel(createdReservation.id);
+
+    expect(cancelledReservation.status).toBe('cancelled');
+  });
+
+  it('should reject an unknown reservation id', () => {
+    expect(() => service.findById('missing-reservation')).toThrow(
+      'Reservation not found',
+    );
+  });
+
+  it('should verify an active reservation QR token', () => {
+    const createdReservation = service.create({
+      userId: 'demo-user',
+      branchId: 'citizen-center-mazzeh',
+      serviceId: 'mazzeh-civil-record',
+    });
+
+    expect(service.verifyQrToken(createdReservation.qrToken)).toEqual(
+      createdReservation,
+    );
+  });
+
+  it('should reject a cancelled reservation QR token', () => {
+    const createdReservation = service.create({
+      userId: 'demo-user',
+      branchId: 'citizen-center-mazzeh',
+      serviceId: 'mazzeh-civil-record',
+    });
+
+    service.cancel(createdReservation.id);
+
+    expect(() => service.verifyQrToken(createdReservation.qrToken)).toThrow(
+      'Reservation QR code is no longer active',
+    );
+  });
 });

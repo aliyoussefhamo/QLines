@@ -11,6 +11,7 @@ class QueueTicket {
     required this.estimatedTravelMinutes,
     required this.createdAt,
     required this.status,
+    required this.qrToken,
   });
 
   final String id;
@@ -24,4 +25,5 @@ class QueueTicket {
       estimatedWaitMinutes + estimatedTravelMinutes;
   final DateTime createdAt;
   final TicketStatus status;
+  final String qrToken;
 }

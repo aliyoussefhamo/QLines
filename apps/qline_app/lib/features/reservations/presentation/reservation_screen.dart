@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 
 import '../../branches/domain/branch.dart';
 import '../../services/domain/service.dart';
@@ -255,6 +256,34 @@ class _TicketView extends StatelessWidget {
           icon: Icons.design_services_outlined,
           title: service.name,
           subtitle: 'الحالة: محجوز - بانتظار تسجيل الوصول',
+        ),
+        const SizedBox(height: 20),
+        Card(
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              children: [
+                Text(
+                  'رمز تسجيل الوصول',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                QrImageView(
+                  data: ticket.qrToken,
+                  version: QrVersions.auto,
+                  size: 190,
+                  backgroundColor: Colors.white,
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'اعرض هذا الرمز عند الوصول إلى الفرع',
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          ),
         ),
         const SizedBox(height: 20),
         OutlinedButton.icon(
