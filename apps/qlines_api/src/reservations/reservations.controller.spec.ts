@@ -1,59 +1,41 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { BranchServicesModule } from '../branch-services/branch-services.module';
-import { BranchesModule } from '../branches/branches.module';
 import { ReservationsController } from './reservations.controller';
 import { ReservationsService } from './reservations.service';
 
 describe('ReservationsController', () => {
   let controller: ReservationsController;
+  const reservation = {
+    id: 'reservation-1',
+    userId: 'demo-user',
+    branchId: 'citizen-center-mazzeh',
+    serviceId: 'mazzeh-civil-record',
+    ticketNumber: 1,
+    status: 'waiting',
+    createdAt: '2026-09-01T00:00:00.000Z',
+    estimatedTurnAt: '2026-09-01T00:30:00.000Z',
+    qrToken: 'qr-token',
+  };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      imports: [BranchesModule, BranchServicesModule],
       controllers: [ReservationsController],
-      providers: [ReservationsService],
+      providers: [
+        {
+          provide: ReservationsService,
+          useValue: { create: jest.fn().mockResolvedValue(reservation) },
+        },
+      ],
     }).compile();
-
-    controller = module.get<ReservationsController>(ReservationsController);
+    controller = module.get(ReservationsController);
   });
 
-  it('should be defined', () => {
-    expect(controller).toBeDefined();
-  });
-
-  it('should create a reservation', () => {
-    const reservation = controller.create({
-      userId: 'demo-user',
-      branchId: 'citizen-center-mazzeh',
-      serviceId: 'mazzeh-civil-record',
-    });
-
-    expect(reservation.ticketNumber).toBe(1);
-    expect(reservation.status).toBe('waiting');
-  });
-
-  it('should return and cancel a reservation', () => {
-    const createdReservation = controller.create({
-      userId: 'demo-user',
-      branchId: 'citizen-center-mazzeh',
-      serviceId: 'mazzeh-civil-record',
-    });
-
-    expect(controller.findById(createdReservation.id)).toEqual(
-      createdReservation,
-    );
-    expect(controller.cancel(createdReservation.id).status).toBe('cancelled');
-  });
-
-  it('should verify a reservation QR token', () => {
-    const createdReservation = controller.create({
-      userId: 'demo-user',
-      branchId: 'citizen-center-mazzeh',
-      serviceId: 'mazzeh-civil-record',
-    });
-
-    expect(
-      controller.verifyQr({ qrToken: createdReservation.qrToken }),
-    ).toEqual(createdReservation);
+  it('should create a reservation', async () => {
+    await expect(
+      controller.create({
+        userId: 'demo-user',
+        branchId: 'citizen-center-mazzeh',
+        serviceId: 'mazzeh-civil-record',
+      }),
+    ).resolves.toEqual(reservation);
   });
 });

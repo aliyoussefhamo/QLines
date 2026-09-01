@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { CreateOrganizations1788283200000 } from './database/migrations/1788283200000-create-organizations';
+import { CreateBranches1788286800000 } from './database/migrations/1788286800000-create-branches';
 import { HealthController } from './health/health.controller';
 import { OrganizationsModule } from './organizations/organizations.module';
 import { BranchesModule } from './branches/branches.module';
@@ -24,7 +25,10 @@ import { ReservationsModule } from './reservations/reservations.module';
         password: configService.getOrThrow<string>('DB_PASSWORD'),
         database: configService.getOrThrow<string>('DB_NAME'),
         autoLoadEntities: true,
-        migrations: [CreateOrganizations1788283200000],
+        migrations: [
+          CreateOrganizations1788283200000,
+          CreateBranches1788286800000,
+        ],
         migrationsRun: true,
         synchronize: false,
       }),

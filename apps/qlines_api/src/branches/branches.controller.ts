@@ -22,7 +22,7 @@ export class BranchesController {
     @Query('longitude', ParseFloatPipe) longitude: number,
     @Query('mode', new ParseEnumPipe(TravelMode))
     travelMode: TravelMode,
-  ): NearbyBranch[] {
+  ): Promise<NearbyBranch[]> {
     return this.branchesService.findNearbyByOrganizationId(
       organizationId,
       latitude,
@@ -34,7 +34,7 @@ export class BranchesController {
   @Get()
   findByOrganizationId(
     @Param('organizationId') organizationId: string,
-  ): Branch[] {
+  ): Promise<Branch[]> {
     return this.branchesService.findByOrganizationId(organizationId);
   }
 }

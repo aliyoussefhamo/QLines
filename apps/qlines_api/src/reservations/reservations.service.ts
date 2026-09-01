@@ -20,8 +20,12 @@ export class ReservationsService {
     private readonly branchServicesService: BranchServicesService,
   ) {}
 
-  create(createReservationDto: CreateReservationDto): Reservation {
-    const branch = this.branchesService.findById(createReservationDto.branchId);
+  async create(
+    createReservationDto: CreateReservationDto,
+  ): Promise<Reservation> {
+    const branch = await this.branchesService.findById(
+      createReservationDto.branchId,
+    );
 
     if (!branch) {
       throw new NotFoundException('Branch not found');

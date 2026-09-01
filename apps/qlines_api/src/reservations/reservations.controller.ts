@@ -9,7 +9,9 @@ export class ReservationsController {
   constructor(private readonly reservationsService: ReservationsService) {}
 
   @Post()
-  create(@Body() createReservationDto: CreateReservationDto): Reservation {
+  create(
+    @Body() createReservationDto: CreateReservationDto,
+  ): Promise<Reservation> {
     return this.reservationsService.create(createReservationDto);
   }
 
