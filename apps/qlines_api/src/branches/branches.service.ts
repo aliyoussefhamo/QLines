@@ -93,6 +93,12 @@ export class BranchesService {
     return this.branches;
   }
 
+  findById(branchId: string): Branch | undefined {
+    return this.branches.find(
+      (branch) => branch.id === branchId && branch.isActive,
+    );
+  }
+
   findByOrganizationId(organizationId: string): Branch[] {
     return this.branches.filter(
       (branch) => branch.organizationId === organizationId && branch.isActive,

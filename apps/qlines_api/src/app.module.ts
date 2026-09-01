@@ -3,9 +3,15 @@ import { HealthController } from './health/health.controller';
 import { OrganizationsModule } from './organizations/organizations.module';
 import { BranchesModule } from './branches/branches.module';
 import { BranchServicesModule } from './branch-services/branch-services.module';
+import { ReservationsModule } from './reservations/reservations.module';
 
 @Module({
   controllers: [HealthController],
-  imports: [OrganizationsModule, BranchesModule, BranchServicesModule],
+  imports: [
+    OrganizationsModule,
+    BranchesModule,
+    BranchServicesModule,
+    ReservationsModule,
+  ],
 })
 export class AppModule {}

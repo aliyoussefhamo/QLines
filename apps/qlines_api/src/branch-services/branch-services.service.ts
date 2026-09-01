@@ -74,6 +74,12 @@ export class BranchServicesService {
     return this.branchServices;
   }
 
+  findById(serviceId: string): BranchService | undefined {
+    return this.branchServices.find(
+      (service) => service.id === serviceId && service.isAvailable,
+    );
+  }
+
   findByBranchId(branchId: string): BranchService[] {
     return this.branchServices.filter(
       (service) => service.branchId === branchId && service.isAvailable,
