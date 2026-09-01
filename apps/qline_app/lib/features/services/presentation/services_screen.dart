@@ -110,38 +110,147 @@ class _ServicesScreenState extends State<ServicesScreen> {
   }
 
   void _showServiceDetails(QueueService service) {
+    var requirementsConfirmed = false;
+
     showModalBottomSheet<void>(
       context: context,
+      isScrollControlled: true,
       showDragHandle: true,
-      builder: (context) => Padding(
-        padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              service.name,
-              style: Theme.of(context).textTheme.headlineSmall
-                  ?.copyWith(fontWeight: FontWeight.bold),
+      builder: (sheetContext) => StatefulBuilder(
+        builder: (context, setSheetState) => SafeArea(
+          child: FractionallySizedBox(
+            heightFactor: 0.88,
+            child: ListView(
+              padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+              children: [
+                Text(
+                  service.name,
+                  style: Theme.of(context).textTheme.headlineSmall
+                      ?.copyWith(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 8),
+                Text(service.description),
+                const SizedBox(height: 20),
+                _ServiceDetailsSection(
+                  icon: Icons.description_outlined,
+                  title: 'الأوراق المطلوبة',
+                  items: service.requiredDocuments,
+                ),
+                _ServiceDetailsSection(
+                  icon: Icons.rule_outlined,
+                  title: 'الشروط',
+                  items: service.requirements,
+                ),
+                _ServiceDetailsSection(
+                  icon: Icons.format_list_numbered,
+                  title: 'خطوات المعاملة',
+                  items: service.steps,
+                  numbered: true,
+                ),
+                _ServiceDetailsSection(
+                  icon: Icons.info_outline,
+                  title: 'ملاحظات',
+                  items: service.notes,
+                ),
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: const Icon(Icons.payments_outlined),
+                  title: const Text('الرسوم التقديرية'),
+                  subtitle: Text(_formatFee(service)),
+                ),
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: const Icon(Icons.timer_outlined),
+                  title: const Text('مدة تنفيذ الخدمة'),
+                  subtitle: Text(
+                    '${service.estimatedDurationMinutes} دقيقة تقريباً',
+                  ),
+                ),
+                CheckboxListTile(
+                  contentPadding: EdgeInsets.zero,
+                  value: requirementsConfirmed,
+                  onChanged: (value) => setSheetState(
+                    () => requirementsConfirmed = value ?? false,
+                  ),
+                  title: const Text('قرأت المتطلبات وجهزت الأوراق المطلوبة'),
+                  controlAffinity: ListTileControlAffinity.leading,
+                ),
+                const SizedBox(height: 12),
+                FilledButton.icon(
+                  onPressed: requirementsConfirmed
+                      ? () {
+                          Navigator.pop(sheetContext);
+                          widget.onContinueReservation(
+                            this.context,
+                            widget.branch,
+                            service,
+                            widget.estimatedTravelMinutes,
+                          );
+                        }
+                      : null,
+                  icon: const Icon(Icons.confirmation_number_outlined),
+                  label: const Text('متابعة الحجز'),
+                ),
+              ],
             ),
-            const SizedBox(height: 8),
-            Text(service.description),
-            const SizedBox(height: 20),
-            FilledButton.icon(
-              onPressed: () {
-                Navigator.pop(context);
-                widget.onContinueReservation(
-                  this.context,
-                  widget.branch,
-                  service,
-                  widget.estimatedTravelMinutes,
-                );
-              },
-              icon: const Icon(Icons.confirmation_number_outlined),
-              label: const Text('متابعة الحجز'),
-            ),
-          ],
+          ),
         ),
+      ),
+    );
+  }
+
+  String _formatFee(QueueService service) {
+    if (service.feeAmount == null || service.currency == null) {
+      return 'تُحدد بحسب الفاتورة أو نوع المعاملة';
+    }
+
+    return '${service.feeAmount} ${service.currency}';
+  }
+}
+
+class _ServiceDetailsSection extends StatelessWidget {
+  const _ServiceDetailsSection({
+    required this.icon,
+    required this.title,
+    required this.items,
+    this.numbered = false,
+  });
+
+  final IconData icon;
+  final String title;
+  final List<String> items;
+  final bool numbered;
+
+  @override
+  Widget build(BuildContext context) {
+    if (items.isEmpty) return const SizedBox.shrink();
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icon, size: 22),
+              const SizedBox(width: 8),
+              Text(
+                title,
+                style: Theme.of(context).textTheme.titleMedium
+                    ?.copyWith(fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          ...items.indexed.map(
+            (entry) => Padding(
+              padding: const EdgeInsets.only(bottom: 6),
+              child: Text(
+                numbered ? '${entry.$1 + 1}. ${entry.$2}' : '• ${entry.$2}',
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

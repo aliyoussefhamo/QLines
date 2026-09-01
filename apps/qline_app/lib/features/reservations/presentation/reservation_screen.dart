@@ -265,9 +265,8 @@ class _TicketView extends StatelessWidget {
               children: [
                 Text(
                   'رمز تسجيل الوصول',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: Theme.of(context).textTheme.titleMedium
+                      ?.copyWith(fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 12),
                 QrImageView(
