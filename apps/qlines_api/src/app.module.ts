@@ -5,6 +5,9 @@ import { CreateOrganizations1788283200000 } from './database/migrations/17882832
 import { CreateBranches1788286800000 } from './database/migrations/1788286800000-create-branches';
 import { CreateBranchServices1788290400000 } from './database/migrations/1788290400000-create-branch-services';
 import { CreateReservations1788294000000 } from './database/migrations/1788294000000-create-reservations';
+import { CreateUsers1788297600000 } from './database/migrations/1788297600000-create-users';
+import { AuthModule } from './auth/auth.module';
+import { UsersModule } from './users/users.module';
 import { HealthController } from './health/health.controller';
 import { OrganizationsModule } from './organizations/organizations.module';
 import { BranchesModule } from './branches/branches.module';
@@ -32,6 +35,7 @@ import { ReservationsModule } from './reservations/reservations.module';
           CreateBranches1788286800000,
           CreateBranchServices1788290400000,
           CreateReservations1788294000000,
+          CreateUsers1788297600000,
         ],
         migrationsRun: true,
         synchronize: false,
@@ -41,6 +45,8 @@ import { ReservationsModule } from './reservations/reservations.module';
     BranchesModule,
     BranchServicesModule,
     ReservationsModule,
+    UsersModule,
+    AuthModule,
   ],
 })
 export class AppModule {}
