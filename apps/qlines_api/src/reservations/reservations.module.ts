@@ -3,6 +3,7 @@ import { BranchServicesModule } from '../branch-services/branch-services.module'
 import { BranchesModule } from '../branches/branches.module';
 import { ReservationsController } from './reservations.controller';
 import { ReservationsService } from './reservations.service';
+import { StaffQueueController } from './staff-queue.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ReservationEntity } from './entities/reservation.entity';
 import { AuthModule } from '../auth/auth.module';
@@ -14,7 +15,7 @@ import { AuthModule } from '../auth/auth.module';
     BranchesModule,
     BranchServicesModule,
   ],
-  controllers: [ReservationsController],
+  controllers: [ReservationsController, StaffQueueController],
   providers: [ReservationsService],
 })
 export class ReservationsModule {}

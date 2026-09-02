@@ -5,6 +5,8 @@ class AuthSession {
     required this.fullName,
     required this.email,
     required this.expiresAt,
+    required this.role,
+    required this.employeeBranchId,
   });
 
   final String accessToken;
@@ -12,6 +14,9 @@ class AuthSession {
   final String fullName;
   final String email;
   final DateTime expiresAt;
+  final String role;
+  final String? employeeBranchId;
 
   bool get isExpired => !expiresAt.isAfter(DateTime.now());
+  bool get isStaff => role == 'staff' || role == 'admin';
 }

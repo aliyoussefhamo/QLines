@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { UserEntity } from './entities/user.entity';
+import { UserRole } from './models/user-role';
 
 @Injectable()
 export class UsersService {
@@ -32,6 +33,8 @@ export class UsersService {
         passwordHash,
         isActive: true,
         isEmailVerified: false,
+        role: UserRole.Customer,
+        employeeBranchId: null,
       }),
     );
   }

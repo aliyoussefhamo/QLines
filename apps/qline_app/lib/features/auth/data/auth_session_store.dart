@@ -10,6 +10,8 @@ class AuthSessionStore {
   static const _fullNameKey = 'auth_full_name';
   static const _emailKey = 'auth_email';
   static const _expiresAtKey = 'auth_expires_at';
+  static const _roleKey = 'auth_role';
+  static const _employeeBranchIdKey = 'auth_employee_branch_id';
 
   final FlutterSecureStorage storage;
 
@@ -24,6 +26,11 @@ class AuthSessionStore {
       key: _expiresAtKey,
       value: session.expiresAt.toUtc().toIso8601String(),
     );
+    await storage.write(key: _roleKey, value: session.role);
+    await storage.write(
+      key: _employeeBranchIdKey,
+      value: session.employeeBranchId ?? '',
+    );
   }
 
   Future<AuthSession?> read() async {
@@ -33,6 +40,8 @@ class AuthSessionStore {
       storage.read(key: _fullNameKey),
       storage.read(key: _emailKey),
       storage.read(key: _expiresAtKey),
+      storage.read(key: _roleKey),
+      storage.read(key: _employeeBranchIdKey),
     ]);
     if (values.any((value) => value == null)) return null;
 
@@ -47,6 +56,8 @@ class AuthSessionStore {
       fullName: values[2]!,
       email: values[3]!,
       expiresAt: expiresAt,
+      role: values[5]!,
+      employeeBranchId: values[6]!.isEmpty ? null : values[6],
     );
     if (session.isExpired) {
       await clear();

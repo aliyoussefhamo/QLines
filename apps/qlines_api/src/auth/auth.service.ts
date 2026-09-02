@@ -61,12 +61,12 @@ export class AuthService {
     if (!user.isEmailVerified) {
       throw new ForbiddenException('Email verification is required');
     }
-    return this.createResponse(user.id, user.fullName, user.email);
+    return this.createResponse(user);
   }
 
   async verifyEmail(email: string, code: string): Promise<AuthResponse> {
     const user = await this.emailVerificationService.verify(email, code);
-    return this.createResponse(user.id, user.fullName, user.email);
+    return this.createResponse(user);
   }
 
   async resendVerification(email: string): Promise<{ sent: true }> {
@@ -124,15 +124,24 @@ export class AuthService {
   }
 
   private createResponse(
-    id: string,
-    fullName: string,
-    email: string,
+    user: import('../users/entities/user.entity').UserEntity,
   ): AuthResponse {
     return {
-      accessToken: this.tokenService.create(id, email),
+      accessToken: this.tokenService.create(
+        user.id,
+        user.email,
+        user.role,
+        user.employeeBranchId,
+      ),
       tokenType: 'Bearer',
       expiresInSeconds: TokenService.expiresInSeconds,
-      user: { id, fullName, email },
+      user: {
+        id: user.id,
+        fullName: user.fullName,
+        email: user.email,
+        role: user.role,
+        employeeBranchId: user.employeeBranchId,
+      },
     };
   }
 }

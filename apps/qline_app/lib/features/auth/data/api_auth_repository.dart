@@ -95,6 +95,8 @@ class ApiAuthRepository {
       expiresAt: DateTime.now().add(
         Duration(seconds: response['expiresInSeconds'] as int),
       ),
+      role: user['role'] as String,
+      employeeBranchId: user['employeeBranchId'] as String?,
     );
     _apiClient.setAccessToken(session.accessToken);
     await _sessionStore.save(session);

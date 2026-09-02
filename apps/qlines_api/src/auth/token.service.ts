@@ -1,11 +1,14 @@
 import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { createHmac, timingSafeEqual } from 'node:crypto';
+import { UserRole } from '../users/models/user-role';
 
 export type TokenPayload = {
   sub: string;
   email: string;
   iat: number;
   exp: number;
+  role: UserRole;
+  employeeBranchId: string | null;
 };
 export const JWT_SECRET = Symbol('JWT_SECRET');
 
@@ -15,7 +18,12 @@ export class TokenService {
 
   constructor(@Inject(JWT_SECRET) private readonly secret: string) {}
 
-  create(userId: string, email: string): string {
+  create(
+    userId: string,
+    email: string,
+    role: UserRole,
+    employeeBranchId: string | null,
+  ): string {
     const now = Math.floor(Date.now() / 1000);
     const header = this.encode({ alg: 'HS256', typ: 'JWT' });
     const payload = this.encode({
@@ -23,6 +31,8 @@ export class TokenService {
       email,
       iat: now,
       exp: now + TokenService.expiresInSeconds,
+      role,
+      employeeBranchId,
     } satisfies TokenPayload);
     const unsignedToken = `${header}.${payload}`;
     const signature = createHmac('sha256', this.getSecret())
@@ -57,6 +67,9 @@ export class TokenService {
         typeof decoded.email !== 'string' ||
         typeof decoded.iat !== 'number' ||
         typeof decoded.exp !== 'number' ||
+        !Object.values(UserRole).includes(decoded.role as UserRole) ||
+        (decoded.employeeBranchId !== null &&
+          typeof decoded.employeeBranchId !== 'string') ||
         decoded.exp <= now
       ) {
         throw new UnauthorizedException('Token is invalid or expired');

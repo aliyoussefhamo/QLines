@@ -15,6 +15,7 @@ import type { EmailSender } from './email-sender';
 import { ResendEmailService } from './resend-email.service';
 import { PasswordResetCodeEntity } from './entities/password-reset-code.entity';
 import { PasswordResetService } from './password-reset.service';
+import { StaffGuard } from './staff.guard';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { PasswordResetService } from './password-reset.service';
     PasswordService,
     TokenService,
     AuthGuard,
+    StaffGuard,
     EmailVerificationService,
     PasswordResetService,
     DevelopmentEmailService,
@@ -53,6 +55,6 @@ import { PasswordResetService } from './password-reset.service';
         configService.getOrThrow<string>('JWT_SECRET'),
     },
   ],
-  exports: [AuthGuard, TokenService],
+  exports: [AuthGuard, StaffGuard, TokenService],
 })
 export class AuthModule {}

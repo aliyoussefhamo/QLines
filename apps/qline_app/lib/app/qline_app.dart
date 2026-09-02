@@ -25,6 +25,8 @@ import '../features/services/presentation/services_view_model.dart';
 import '../features/profile/data/api_profile_repository.dart';
 import '../features/profile/domain/user_profile.dart';
 import '../features/profile/presentation/profile_screen.dart';
+import '../features/staff/data/api_staff_queue_repository.dart';
+import '../features/staff/presentation/staff_queue_screen.dart';
 import 'theme/qline_theme.dart';
 
 class QlineApp extends StatefulWidget {
@@ -84,6 +86,8 @@ class _QlineAppState extends State<QlineApp> {
       fullName: profile.fullName,
       email: profile.email,
       expiresAt: current.expiresAt,
+      role: current.role,
+      employeeBranchId: current.employeeBranchId,
     );
     await _sessionStore.save(updated);
     _session = updated;
@@ -113,6 +117,13 @@ class _QlineAppState extends State<QlineApp> {
         key: const ValueKey('login'),
         repository: ApiAuthRepository(_apiClient, _sessionStore),
         onAuthenticated: (_, session) => setState(() => _session = session),
+      );
+    }
+    if (_session!.isStaff) {
+      return StaffQueueScreen(
+        repository: ApiStaffQueueRepository(_apiClient),
+        branchId: _session!.employeeBranchId!,
+        onLogout: _logout,
       );
     }
     return KeyedSubtree(

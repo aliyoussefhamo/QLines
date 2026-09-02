@@ -8,6 +8,7 @@ import { CreateReservations1788294000000 } from './database/migrations/178829400
 import { CreateUsers1788297600000 } from './database/migrations/1788297600000-create-users';
 import { AddEmailVerification1788301200000 } from './database/migrations/1788301200000-add-email-verification';
 import { CreatePasswordResetCodes1788304800000 } from './database/migrations/1788304800000-create-password-reset-codes';
+import { AddStaffRoles1788308400000 } from './database/migrations/1788308400000-add-staff-roles';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { HealthController } from './health/health.controller';
@@ -40,6 +41,7 @@ import { ReservationsModule } from './reservations/reservations.module';
           CreateUsers1788297600000,
           AddEmailVerification1788301200000,
           CreatePasswordResetCodes1788304800000,
+          AddStaffRoles1788308400000,
         ],
         migrationsRun: true,
         synchronize: false,

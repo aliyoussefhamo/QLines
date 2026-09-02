@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { randomUUID } from 'node:crypto';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { BranchServicesService } from '../branch-services/branch-services.service';
 import { BranchesService } from '../branches/branches.service';
 import { calculateQueueDurationMinutes } from '../branches/utils/calculate-queue-duration';
@@ -13,6 +13,7 @@ import { CreateReservationDto } from './dto/create-reservation.dto';
 import { ReservationEntity } from './entities/reservation.entity';
 import { ReservationStatus } from './models/reservation-status';
 import { Reservation } from './models/reservation';
+import { StaffQueueItem } from './models/staff-queue-item';
 
 @Injectable()
 export class ReservationsService {
@@ -123,6 +124,57 @@ export class ReservationsService {
     return this.toReservation(reservation);
   }
 
+  async findStaffQueue(branchId: string): Promise<StaffQueueItem[]> {
+    const reservations = await this.reservationsRepository.find({
+      where: {
+        branchId,
+        status: In([ReservationStatus.Waiting, ReservationStatus.Called]),
+      },
+      relations: { service: true },
+      order: { ticketNumber: 'ASC' },
+    });
+    return reservations.map((reservation) =>
+      this.toStaffQueueItem(reservation),
+    );
+  }
+
+  async callNext(branchId: string): Promise<StaffQueueItem> {
+    const alreadyCalled = await this.reservationsRepository.findOne({
+      where: { branchId, status: ReservationStatus.Called },
+      relations: { service: true },
+      order: { ticketNumber: 'ASC' },
+    });
+    if (alreadyCalled) return this.toStaffQueueItem(alreadyCalled);
+
+    const next = await this.reservationsRepository.findOne({
+      where: { branchId, status: ReservationStatus.Waiting },
+      relations: { service: true },
+      order: { ticketNumber: 'ASC' },
+    });
+    if (!next) throw new NotFoundException('There are no waiting reservations');
+    next.status = ReservationStatus.Called;
+    return this.toStaffQueueItem(await this.reservationsRepository.save(next));
+  }
+
+  async updateByStaff(
+    branchId: string,
+    reservationId: string,
+    status: ReservationStatus.Completed | ReservationStatus.NoShow,
+  ): Promise<StaffQueueItem> {
+    const reservation = await this.reservationsRepository.findOne({
+      where: { id: reservationId, branchId },
+      relations: { service: true },
+    });
+    if (!reservation) throw new NotFoundException('Reservation not found');
+    if (reservation.status !== ReservationStatus.Called) {
+      throw new BadRequestException('Only a called reservation can be updated');
+    }
+    reservation.status = status;
+    return this.toStaffQueueItem(
+      await this.reservationsRepository.save(reservation),
+    );
+  }
+
   private async findEntityById(
     reservationId: string,
     userId: string,
@@ -147,6 +199,13 @@ export class ReservationsService {
       createdAt: entity.createdAt.toISOString(),
       estimatedTurnAt: entity.estimatedTurnAt.toISOString(),
       qrToken: entity.qrToken,
+    };
+  }
+
+  private toStaffQueueItem(entity: ReservationEntity): StaffQueueItem {
+    return {
+      ...this.toReservation(entity),
+      serviceName: entity.service.name,
     };
   }
 }

@@ -5,6 +5,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { UserRole } from '../models/user-role';
 
 @Entity({ name: 'users' })
 export class UserEntity {
@@ -25,6 +26,17 @@ export class UserEntity {
 
   @Column({ name: 'is_email_verified', type: 'boolean', default: false })
   isEmailVerified: boolean;
+
+  @Column({ type: 'varchar', length: 20, default: UserRole.Customer })
+  role: UserRole;
+
+  @Column({
+    name: 'employee_branch_id',
+    type: 'varchar',
+    length: 64,
+    nullable: true,
+  })
+  employeeBranchId: string | null;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt: Date;
