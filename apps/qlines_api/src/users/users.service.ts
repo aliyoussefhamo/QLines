@@ -37,6 +37,11 @@ export class UsersService {
     return this.usersRepository.save(user);
   }
 
+  updatePassword(user: UserEntity, passwordHash: string): Promise<UserEntity> {
+    user.passwordHash = passwordHash;
+    return this.usersRepository.save(user);
+  }
+
   private normalizeEmail(email: string): string {
     return email.trim().toLowerCase();
   }

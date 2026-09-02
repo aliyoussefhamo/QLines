@@ -28,11 +28,15 @@ class _LoginScreenState extends State<LoginScreen> {
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   final _verificationCodeController = TextEditingController();
+  final _resetCodeController = TextEditingController();
+  final _newPasswordController = TextEditingController();
+  final _confirmNewPasswordController = TextEditingController();
   _AuthMode _mode = _AuthMode.login;
   bool _isLoading = false;
   bool _obscurePassword = true;
   String? _error;
   String? _pendingVerificationEmail;
+  String? _pendingPasswordResetEmail;
 
   bool get _isRegistering => _mode == _AuthMode.register;
 
@@ -43,6 +47,9 @@ class _LoginScreenState extends State<LoginScreen> {
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     _verificationCodeController.dispose();
+    _resetCodeController.dispose();
+    _newPasswordController.dispose();
+    _confirmNewPasswordController.dispose();
     super.dispose();
   }
 
@@ -156,6 +163,77 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
+  Future<void> _requestPasswordReset() async {
+    final email = _emailController.text.trim();
+    if (!email.contains('@')) {
+      setState(() => _error = 'أدخل بريدك الإلكتروني أولاً');
+      return;
+    }
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+    try {
+      await widget.repository.forgotPassword(email);
+      if (mounted) setState(() => _pendingPasswordResetEmail = email);
+    } on ApiException catch (error) {
+      if (mounted) setState(() => _error = error.message);
+    } catch (_) {
+      if (mounted) setState(() => _error = 'تعذر إرسال كود الاستعادة');
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _resetPassword() async {
+    final code = _resetCodeController.text.trim();
+    final password = _newPasswordController.text;
+    if (code.length != 6) {
+      setState(() => _error = 'أدخل الكود المؤلف من 6 أرقام');
+      return;
+    }
+    if (password.length < 8) {
+      setState(() => _error = 'كلمة المرور يجب أن تكون 8 أحرف على الأقل');
+      return;
+    }
+    if (password != _confirmNewPasswordController.text) {
+      setState(() => _error = 'كلمتا المرور غير متطابقتين');
+      return;
+    }
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+    try {
+      await widget.repository.resetPassword(
+        email: _pendingPasswordResetEmail!,
+        code: code,
+        newPassword: password,
+      );
+      if (!mounted) return;
+      setState(() {
+        _pendingPasswordResetEmail = null;
+        _passwordController.clear();
+        _resetCodeController.clear();
+        _newPasswordController.clear();
+        _confirmNewPasswordController.clear();
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('تم تغيير كلمة المرور، سجل دخولك الآن')),
+      );
+    } on ApiException catch (error) {
+      if (mounted) {
+        setState(
+          () => _error = error.statusCode == 429
+              ? 'محاولات كثيرة، اطلب كوداً جديداً لاحقاً'
+              : 'الكود غير صحيح أو انتهت صلاحيته',
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
   String _messageFor(ApiException error) {
     if (error.statusCode == 409) return 'البريد الإلكتروني مسجل مسبقاً';
     if (error.statusCode == 401) {
@@ -166,6 +244,9 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (_pendingPasswordResetEmail != null) {
+      return _buildPasswordResetScreen(context);
+    }
     if (_pendingVerificationEmail != null) {
       return _buildVerificationScreen(context);
     }
@@ -268,6 +349,14 @@ class _LoginScreenState extends State<LoginScreen> {
                       if (!_isRegistering) _submit();
                     },
                   ),
+                  if (!_isRegistering)
+                    Align(
+                      alignment: AlignmentDirectional.centerEnd,
+                      child: TextButton(
+                        onPressed: _isLoading ? null : _requestPasswordReset,
+                        child: const Text('نسيت كلمة المرور؟'),
+                      ),
+                    ),
                   if (_isRegistering) ...[
                     const SizedBox(height: 16),
                     TextFormField(
@@ -390,6 +479,100 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 TextButton(
                   onPressed: _isLoading ? null : _resendVerification,
+                  child: const Text('إعادة إرسال الكود'),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPasswordResetScreen(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        leading: IconButton(
+          onPressed: _isLoading
+              ? null
+              : () => setState(() {
+                  _pendingPasswordResetEmail = null;
+                  _error = null;
+                }),
+          icon: const Icon(Icons.arrow_forward),
+        ),
+        title: const Text('إعادة تعيين كلمة المرور'),
+      ),
+      body: Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 420),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const Icon(Icons.lock_reset_outlined, size: 72),
+                const SizedBox(height: 16),
+                const Text(
+                  'أدخل الكود المرسل إلى بريدك وكلمة المرور الجديدة',
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  _pendingPasswordResetEmail!,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 24),
+                TextField(
+                  controller: _resetCodeController,
+                  keyboardType: TextInputType.number,
+                  textAlign: TextAlign.center,
+                  maxLength: 6,
+                  decoration: const InputDecoration(
+                    labelText: 'كود الاستعادة',
+                    hintText: '000000',
+                    prefixIcon: Icon(Icons.password),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: _newPasswordController,
+                  obscureText: _obscurePassword,
+                  decoration: const InputDecoration(
+                    labelText: 'كلمة المرور الجديدة',
+                    prefixIcon: Icon(Icons.lock_outline),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: _confirmNewPasswordController,
+                  obscureText: _obscurePassword,
+                  decoration: const InputDecoration(
+                    labelText: 'تأكيد كلمة المرور الجديدة',
+                    prefixIcon: Icon(Icons.lock_reset_outlined),
+                  ),
+                  onSubmitted: (_) => _resetPassword(),
+                ),
+                if (_error != null) ...[
+                  const SizedBox(height: 12),
+                  Text(
+                    _error!,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.error,
+                    ),
+                  ),
+                ],
+                const SizedBox(height: 20),
+                FilledButton(
+                  onPressed: _isLoading ? null : _resetPassword,
+                  child: Text(
+                    _isLoading ? 'يرجى الانتظار...' : 'تغيير كلمة المرور',
+                  ),
+                ),
+                TextButton(
+                  onPressed: _isLoading ? null : _requestPasswordReset,
                   child: const Text('إعادة إرسال الكود'),
                 ),
               ],

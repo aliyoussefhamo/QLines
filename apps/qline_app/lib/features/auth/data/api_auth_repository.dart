@@ -57,6 +57,28 @@ class ApiAuthRepository {
     await _apiClient.post('/auth/resend-verification', body: {'email': email});
   }
 
+  Future<void> forgotPassword(String email) async {
+    await _apiClient.post(
+      '/auth/forgot-password',
+      body: {'email': email.trim()},
+    );
+  }
+
+  Future<void> resetPassword({
+    required String email,
+    required String code,
+    required String newPassword,
+  }) async {
+    await _apiClient.post(
+      '/auth/reset-password',
+      body: {
+        'email': email.trim(),
+        'code': code.trim(),
+        'newPassword': newPassword,
+      },
+    );
+  }
+
   Future<AuthSession> _saveSession(Object? response) async {
     if (response is! Map<String, dynamic>) {
       throw const FormatException('Invalid authentication response');

@@ -13,6 +13,7 @@ import { PasswordService } from './password.service';
 import { TokenService } from './token.service';
 import { EmailVerificationService } from './email-verification.service';
 import { RegistrationResponse } from './models/registration-response';
+import { PasswordResetService } from './password-reset.service';
 
 @Injectable()
 export class AuthService {
@@ -21,6 +22,7 @@ export class AuthService {
     private readonly passwordService: PasswordService,
     private readonly tokenService: TokenService,
     private readonly emailVerificationService: EmailVerificationService,
+    private readonly passwordResetService: PasswordResetService,
   ) {}
 
   async register(dto: RegisterDto): Promise<RegistrationResponse> {
@@ -72,6 +74,20 @@ export class AuthService {
       await this.emailVerificationService.issue(user.id, user.email, true);
     }
     return { sent: true };
+  }
+
+  async forgotPassword(email: string): Promise<{ sent: true }> {
+    await this.passwordResetService.request(email);
+    return { sent: true };
+  }
+
+  async resetPassword(
+    email: string,
+    code: string,
+    newPassword: string,
+  ): Promise<{ reset: true }> {
+    await this.passwordResetService.reset(email, code, newPassword);
+    return { reset: true };
   }
 
   private createResponse(

@@ -13,11 +13,16 @@ import { EmailVerificationCodeEntity } from './entities/email-verification-code.
 import { EMAIL_SENDER } from './email-sender';
 import type { EmailSender } from './email-sender';
 import { ResendEmailService } from './resend-email.service';
+import { PasswordResetCodeEntity } from './entities/password-reset-code.entity';
+import { PasswordResetService } from './password-reset.service';
 
 @Module({
   imports: [
     UsersModule,
-    TypeOrmModule.forFeature([EmailVerificationCodeEntity]),
+    TypeOrmModule.forFeature([
+      EmailVerificationCodeEntity,
+      PasswordResetCodeEntity,
+    ]),
   ],
   controllers: [AuthController],
   providers: [
@@ -26,6 +31,7 @@ import { ResendEmailService } from './resend-email.service';
     TokenService,
     AuthGuard,
     EmailVerificationService,
+    PasswordResetService,
     DevelopmentEmailService,
     ResendEmailService,
     {

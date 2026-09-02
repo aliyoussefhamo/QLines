@@ -9,4 +9,9 @@ export class DevelopmentEmailService implements EmailSender {
     this.logger.warn(`[DEV EMAIL] Verification code for ${email}: ${code}`);
     return Promise.resolve();
   }
+
+  sendPasswordResetCode(email: string, code: string): Promise<void> {
+    this.logger.warn(`[DEV EMAIL] Password reset code for ${email}: ${code}`);
+    return Promise.resolve();
+  }
 }
