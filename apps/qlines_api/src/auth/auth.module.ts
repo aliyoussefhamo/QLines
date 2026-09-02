@@ -10,6 +10,9 @@ import { AuthGuard } from './auth.guard';
 import { DevelopmentEmailService } from './development-email.service';
 import { EmailVerificationService } from './email-verification.service';
 import { EmailVerificationCodeEntity } from './entities/email-verification-code.entity';
+import { EMAIL_SENDER } from './email-sender';
+import type { EmailSender } from './email-sender';
+import { ResendEmailService } from './resend-email.service';
 
 @Module({
   imports: [
@@ -24,6 +27,19 @@ import { EmailVerificationCodeEntity } from './entities/email-verification-code.
     AuthGuard,
     EmailVerificationService,
     DevelopmentEmailService,
+    ResendEmailService,
+    {
+      provide: EMAIL_SENDER,
+      inject: [ConfigService, DevelopmentEmailService, ResendEmailService],
+      useFactory: (
+        configService: ConfigService,
+        developmentEmailService: DevelopmentEmailService,
+        resendEmailService: ResendEmailService,
+      ): EmailSender =>
+        configService.get<string>('EMAIL_PROVIDER', 'development') === 'resend'
+          ? resendEmailService
+          : developmentEmailService,
+    },
     {
       provide: JWT_SECRET,
       inject: [ConfigService],

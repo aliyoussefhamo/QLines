@@ -9,7 +9,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { createHmac, randomInt, timingSafeEqual } from 'node:crypto';
 import { Repository } from 'typeorm';
 import { UsersService } from '../users/users.service';
-import { DevelopmentEmailService } from './development-email.service';
+import { EMAIL_SENDER } from './email-sender';
+import type { EmailSender } from './email-sender';
 import { EmailVerificationCodeEntity } from './entities/email-verification-code.entity';
 import { JWT_SECRET } from './token.service';
 
@@ -23,7 +24,7 @@ export class EmailVerificationService {
     private readonly codesRepository: Repository<EmailVerificationCodeEntity>,
     @Inject(JWT_SECRET) private readonly secret: string,
     private readonly usersService: UsersService,
-    private readonly emailService: DevelopmentEmailService,
+    @Inject(EMAIL_SENDER) private readonly emailService: EmailSender,
   ) {}
 
   async issue(
@@ -54,7 +55,7 @@ export class EmailVerificationService {
     entity.attemptCount = 0;
     entity.lastSentAt = now;
     await this.codesRepository.save(entity);
-    this.emailService.sendVerificationCode(email, code);
+    await this.emailService.sendVerificationCode(email, code);
   }
 
   async verify(email: string, code: string) {
