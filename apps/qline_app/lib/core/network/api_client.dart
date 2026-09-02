@@ -6,13 +6,19 @@ import 'api_config.dart';
 import 'api_exception.dart';
 
 class ApiClient {
-  ApiClient({http.Client? client}) : _client = client ?? http.Client();
+  ApiClient({http.Client? client, this._onUnauthorized})
+    : _client = client ?? http.Client();
 
   final http.Client _client;
+  final void Function()? _onUnauthorized;
   String? _accessToken;
 
   void setAccessToken(String accessToken) {
     _accessToken = accessToken;
+  }
+
+  void clearAccessToken() {
+    _accessToken = null;
   }
 
   Map<String, String> _headers({bool hasBody = false}) => {
@@ -56,6 +62,7 @@ class ApiClient {
     final body = jsonDecode(utf8.decode(response.bodyBytes));
 
     if (response.statusCode < 200 || response.statusCode >= 300) {
+      if (response.statusCode == 401) _onUnauthorized?.call();
       final message = body is Map<String, dynamic>
           ? body['message']?.toString() ?? 'تعذر تنفيذ الطلب'
           : 'تعذر تنفيذ الطلب';

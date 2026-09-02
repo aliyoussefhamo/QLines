@@ -9,12 +9,14 @@ class OrganizationsScreen extends StatefulWidget {
     required this.viewModel,
     required this.onOrganizationSelected,
     required this.onMyReservations,
+    required this.onLogout,
   });
 
   final OrganizationsViewModel viewModel;
   final void Function(BuildContext context, Organization organization)
   onOrganizationSelected;
   final void Function(BuildContext context) onMyReservations;
+  final Future<void> Function() onLogout;
 
   @override
   State<OrganizationsScreen> createState() => _OrganizationsScreenState();
@@ -48,6 +50,11 @@ class _OrganizationsScreenState extends State<OrganizationsScreen> {
             tooltip: 'حجوزاتي',
             icon: const Icon(Icons.confirmation_number_outlined),
           ),
+          IconButton(
+            onPressed: () => _confirmLogout(context),
+            tooltip: 'تسجيل الخروج',
+            icon: const Icon(Icons.logout),
+          ),
         ],
       ),
       body: SafeArea(
@@ -70,6 +77,27 @@ class _OrganizationsScreenState extends State<OrganizationsScreen> {
         ),
       ),
     );
+  }
+
+  Future<void> _confirmLogout(BuildContext context) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('تسجيل الخروج'),
+        content: const Text('هل تريد تسجيل الخروج من حسابك؟'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('تراجع'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('تسجيل الخروج'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true) await widget.onLogout();
   }
 
   Widget _buildContent() {
