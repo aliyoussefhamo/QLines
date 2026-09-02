@@ -27,10 +27,12 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
+  final _verificationCodeController = TextEditingController();
   _AuthMode _mode = _AuthMode.login;
   bool _isLoading = false;
   bool _obscurePassword = true;
   String? _error;
+  String? _pendingVerificationEmail;
 
   bool get _isRegistering => _mode == _AuthMode.register;
 
@@ -40,6 +42,7 @@ class _LoginScreenState extends State<LoginScreen> {
     _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
+    _verificationCodeController.dispose();
     super.dispose();
   }
 
@@ -60,25 +63,92 @@ class _LoginScreenState extends State<LoginScreen> {
       _error = null;
     });
     try {
-      final session = _isRegistering
-          ? await widget.repository.register(
-              fullName: _fullNameController.text,
-              email: _emailController.text,
-              password: _passwordController.text,
-            )
-          : await widget.repository.login(
-              email: _emailController.text,
-              password: _passwordController.text,
-            );
+      if (_isRegistering) {
+        final pending = await widget.repository.register(
+          fullName: _fullNameController.text,
+          email: _emailController.text,
+          password: _passwordController.text,
+        );
+        if (mounted) {
+          setState(() => _pendingVerificationEmail = pending.email);
+        }
+        return;
+      }
+      final session = await widget.repository.login(
+        email: _emailController.text,
+        password: _passwordController.text,
+      );
       if (mounted) widget.onAuthenticated(context, session);
     } on ApiException catch (error) {
-      if (mounted) setState(() => _error = _messageFor(error));
+      if (mounted) {
+        if (error.statusCode == 403 && !_isRegistering) {
+          setState(() {
+            _pendingVerificationEmail = _emailController.text.trim();
+            _error = null;
+          });
+        } else {
+          setState(() => _error = _messageFor(error));
+        }
+      }
     } catch (_) {
       if (mounted) {
         setState(
           () => _error = _isRegistering
               ? 'تعذر إنشاء الحساب'
               : 'تعذر تسجيل الدخول',
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _verifyEmail() async {
+    final code = _verificationCodeController.text.trim();
+    if (code.length != 6) {
+      setState(() => _error = 'أدخل الكود المؤلف من 6 أرقام');
+      return;
+    }
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+    try {
+      final session = await widget.repository.verifyEmail(
+        email: _pendingVerificationEmail!,
+        code: code,
+      );
+      if (mounted) widget.onAuthenticated(context, session);
+    } on ApiException catch (error) {
+      if (mounted) {
+        setState(
+          () => _error = error.statusCode == 429
+              ? 'محاولات كثيرة، اطلب كوداً جديداً'
+              : 'الكود غير صحيح أو انتهت صلاحيته',
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _resendVerification() async {
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+    try {
+      await widget.repository.resendVerification(_pendingVerificationEmail!);
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(const SnackBar(content: Text('تم إرسال كود جديد')));
+      }
+    } on ApiException catch (error) {
+      if (mounted) {
+        setState(
+          () => _error = error.statusCode == 429
+              ? 'انتظر دقيقة قبل طلب كود جديد'
+              : error.message,
         );
       }
     } finally {
@@ -96,6 +166,9 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (_pendingVerificationEmail != null) {
+      return _buildVerificationScreen(context);
+    }
     return Scaffold(
       body: Center(
         child: SingleChildScrollView(
@@ -244,6 +317,82 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ],
               ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildVerificationScreen(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        leading: IconButton(
+          onPressed: _isLoading
+              ? null
+              : () => setState(() {
+                  _pendingVerificationEmail = null;
+                  _verificationCodeController.clear();
+                  _error = null;
+                }),
+          icon: const Icon(Icons.arrow_forward),
+        ),
+        title: const Text('تأكيد البريد الإلكتروني'),
+      ),
+      body: Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 420),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const Icon(Icons.mark_email_read_outlined, size: 72),
+                const SizedBox(height: 16),
+                Text(
+                  'أدخل الكود المرسل إلى',
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  _pendingVerificationEmail!,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 24),
+                TextField(
+                  controller: _verificationCodeController,
+                  keyboardType: TextInputType.number,
+                  textAlign: TextAlign.center,
+                  maxLength: 6,
+                  decoration: const InputDecoration(
+                    labelText: 'كود التحقق',
+                    hintText: '000000',
+                    prefixIcon: Icon(Icons.password),
+                  ),
+                  onSubmitted: (_) => _verifyEmail(),
+                ),
+                if (_error != null) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    _error!,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.error,
+                    ),
+                  ),
+                ],
+                const SizedBox(height: 16),
+                FilledButton(
+                  onPressed: _isLoading ? null : _verifyEmail,
+                  child: Text(_isLoading ? 'يرجى الانتظار...' : 'تأكيد البريد'),
+                ),
+                TextButton(
+                  onPressed: _isLoading ? null : _resendVerification,
+                  child: const Text('إعادة إرسال الكود'),
+                ),
+              ],
             ),
           ),
         ),

@@ -6,6 +6,7 @@ import { CreateBranches1788286800000 } from './database/migrations/1788286800000
 import { CreateBranchServices1788290400000 } from './database/migrations/1788290400000-create-branch-services';
 import { CreateReservations1788294000000 } from './database/migrations/1788294000000-create-reservations';
 import { CreateUsers1788297600000 } from './database/migrations/1788297600000-create-users';
+import { AddEmailVerification1788301200000 } from './database/migrations/1788301200000-add-email-verification';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { HealthController } from './health/health.controller';
@@ -36,6 +37,7 @@ import { ReservationsModule } from './reservations/reservations.module';
           CreateBranchServices1788290400000,
           CreateReservations1788294000000,
           CreateUsers1788297600000,
+          AddEmailVerification1788301200000,
         ],
         migrationsRun: true,
         synchronize: false,

@@ -1,5 +1,6 @@
 import '../../../core/network/api_client.dart';
 import '../domain/auth_session.dart';
+import '../domain/pending_email_verification.dart';
 import 'auth_session_store.dart';
 
 class ApiAuthRepository {
@@ -19,7 +20,7 @@ class ApiAuthRepository {
     return _saveSession(response);
   }
 
-  Future<AuthSession> register({
+  Future<PendingEmailVerification> register({
     required String fullName,
     required String email,
     required String password,
@@ -32,7 +33,28 @@ class ApiAuthRepository {
         'password': password,
       },
     );
+    if (response is! Map<String, dynamic>) {
+      throw const FormatException('Invalid registration response');
+    }
+    return PendingEmailVerification(
+      email: response['email'] as String,
+      expiresInSeconds: response['expiresInSeconds'] as int,
+    );
+  }
+
+  Future<AuthSession> verifyEmail({
+    required String email,
+    required String code,
+  }) async {
+    final response = await _apiClient.post(
+      '/auth/verify-email',
+      body: {'email': email, 'code': code},
+    );
     return _saveSession(response);
+  }
+
+  Future<void> resendVerification(String email) async {
+    await _apiClient.post('/auth/resend-verification', body: {'email': email});
   }
 
   Future<AuthSession> _saveSession(Object? response) async {

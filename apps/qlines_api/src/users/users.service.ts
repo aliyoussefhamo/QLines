@@ -27,8 +27,14 @@ export class UsersService {
         email: this.normalizeEmail(email),
         passwordHash,
         isActive: true,
+        isEmailVerified: false,
       }),
     );
+  }
+
+  markEmailVerified(user: UserEntity): Promise<UserEntity> {
+    user.isEmailVerified = true;
+    return this.usersRepository.save(user);
   }
 
   private normalizeEmail(email: string): string {
