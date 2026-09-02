@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../core/network/api_exception.dart';
 import '../../../core/realtime/reservation_realtime_service.dart';
+import '../../../core/realtime/realtime_status_badge.dart';
 import '../data/api_staff_queue_repository.dart';
 import '../domain/staff_queue_item.dart';
 import 'qr_scanner_screen.dart';
@@ -45,6 +46,10 @@ class _StaffQueueScreenState extends State<StaffQueueScreen> {
   }
 
   void _refreshFromRealtime() {
+    if (widget.realtimeService.lastEvent == null) {
+      if (mounted) setState(() {});
+      return;
+    }
     _load(showLoading: false);
   }
 
@@ -177,6 +182,13 @@ class _StaffQueueScreenState extends State<StaffQueueScreen> {
               padding: const EdgeInsets.all(16),
               children: [
                 Text('الفرع: ${widget.branchId}'),
+                const SizedBox(height: 8),
+                Align(
+                  alignment: AlignmentDirectional.centerStart,
+                  child: RealtimeStatusBadge(
+                    isConnected: widget.realtimeService.isConnected,
+                  ),
+                ),
                 const SizedBox(height: 16),
                 Row(
                   children: [

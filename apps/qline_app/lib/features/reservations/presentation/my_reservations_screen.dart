@@ -1,10 +1,14 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
 import '../domain/my_reservation.dart';
 import '../domain/queue_ticket.dart';
 import 'my_reservations_view_model.dart';
 import '../../../core/realtime/reservation_realtime_service.dart';
+import '../../../core/realtime/realtime_status_badge.dart';
 
 class MyReservationsScreen extends StatefulWidget {
   const MyReservationsScreen({
@@ -41,13 +45,35 @@ class _MyReservationsScreenState extends State<MyReservationsScreen> {
   void _refresh() => setState(() {});
 
   void _refreshFromRealtime() {
-    widget.viewModel.refresh();
+    final event = widget.realtimeService.lastEvent;
+    if (event == null) {
+      if (mounted) setState(() {});
+      return;
+    }
+    unawaited(widget.viewModel.refresh());
+    if (event.status == 'called' && mounted) {
+      unawaited(SystemSound.play(SystemSoundType.alert));
+      unawaited(HapticFeedback.mediumImpact());
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(
+            content: Text('حان دورك! توجّه إلى شباك الخدمة الآن'),
+            duration: Duration(seconds: 8),
+          ),
+        );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('حجوزاتي')),
+      appBar: AppBar(
+        title: const Text('حجوزاتي'),
+        actions: [
+          RealtimeStatusBadge(isConnected: widget.realtimeService.isConnected),
+        ],
+      ),
       body: SafeArea(child: _content()),
     );
   }
