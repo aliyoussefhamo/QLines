@@ -9,6 +9,7 @@ class OrganizationsScreen extends StatefulWidget {
     required this.viewModel,
     required this.onOrganizationSelected,
     required this.onMyReservations,
+    required this.onProfile,
     required this.onLogout,
   });
 
@@ -16,6 +17,7 @@ class OrganizationsScreen extends StatefulWidget {
   final void Function(BuildContext context, Organization organization)
   onOrganizationSelected;
   final void Function(BuildContext context) onMyReservations;
+  final void Function(BuildContext context) onProfile;
   final Future<void> Function() onLogout;
 
   @override
@@ -49,6 +51,11 @@ class _OrganizationsScreenState extends State<OrganizationsScreen> {
             onPressed: () => widget.onMyReservations(context),
             tooltip: 'حجوزاتي',
             icon: const Icon(Icons.confirmation_number_outlined),
+          ),
+          IconButton(
+            onPressed: () => widget.onProfile(context),
+            tooltip: 'حسابي',
+            icon: const Icon(Icons.person_outline),
           ),
           IconButton(
             onPressed: () => _confirmLogout(context),

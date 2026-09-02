@@ -3,6 +3,7 @@ import {
   ForbiddenException,
   Injectable,
   UnauthorizedException,
+  NotFoundException,
 } from '@nestjs/common';
 import { QueryFailedError } from 'typeorm';
 import { UsersService } from '../users/users.service';
@@ -88,6 +89,38 @@ export class AuthService {
   ): Promise<{ reset: true }> {
     await this.passwordResetService.reset(email, code, newPassword);
     return { reset: true };
+  }
+
+  async getProfile(userId: string) {
+    const user = await this.usersService.findById(userId);
+    if (!user) throw new NotFoundException('User not found');
+    return { id: user.id, fullName: user.fullName, email: user.email };
+  }
+
+  async updateProfile(userId: string, fullName: string) {
+    const user = await this.usersService.findById(userId);
+    if (!user) throw new NotFoundException('User not found');
+    const updated = await this.usersService.updateFullName(user, fullName);
+    return { id: updated.id, fullName: updated.fullName, email: updated.email };
+  }
+
+  async changePassword(
+    userId: string,
+    currentPassword: string,
+    newPassword: string,
+  ): Promise<{ changed: true }> {
+    const user = await this.usersService.findById(userId);
+    if (
+      !user ||
+      !this.passwordService.verify(currentPassword, user.passwordHash)
+    ) {
+      throw new ForbiddenException('Current password is incorrect');
+    }
+    await this.usersService.updatePassword(
+      user,
+      this.passwordService.hash(newPassword),
+    );
+    return { changed: true };
   }
 
   private createResponse(

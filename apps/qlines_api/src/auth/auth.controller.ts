@@ -1,4 +1,13 @@
-import { Body, Controller, HttpCode, HttpStatus, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Patch,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
@@ -8,6 +17,11 @@ import { VerifyEmailDto } from './dto/verify-email.dto';
 import { ResendVerificationDto } from './dto/resend-verification.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
+import { UpdateProfileDto } from './dto/update-profile.dto';
+import { ChangePasswordDto } from './dto/change-password.dto';
+import { AuthGuard } from './auth.guard';
+import { CurrentUser } from './current-user.decorator';
+import type { TokenPayload } from './token.service';
 
 @Controller('auth')
 export class AuthController {
@@ -48,5 +62,33 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   resetPassword(@Body() dto: ResetPasswordDto): Promise<{ reset: true }> {
     return this.authService.resetPassword(dto.email, dto.code, dto.newPassword);
+  }
+
+  @Get('me')
+  @UseGuards(AuthGuard)
+  getProfile(@CurrentUser() user: TokenPayload) {
+    return this.authService.getProfile(user.sub);
+  }
+
+  @Patch('me')
+  @UseGuards(AuthGuard)
+  updateProfile(
+    @CurrentUser() user: TokenPayload,
+    @Body() dto: UpdateProfileDto,
+  ) {
+    return this.authService.updateProfile(user.sub, dto.fullName);
+  }
+
+  @Patch('change-password')
+  @UseGuards(AuthGuard)
+  changePassword(
+    @CurrentUser() user: TokenPayload,
+    @Body() dto: ChangePasswordDto,
+  ): Promise<{ changed: true }> {
+    return this.authService.changePassword(
+      user.sub,
+      dto.currentPassword,
+      dto.newPassword,
+    );
   }
 }

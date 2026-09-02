@@ -49,11 +49,14 @@ class ApiClient {
     return _decodeResponse(response);
   }
 
-  Future<Object?> patch(String path) async {
+  Future<Object?> patch(
+    String path, {
+    Map<String, Object?> body = const {},
+  }) async {
     final response = await _client.patch(
       Uri.parse('${ApiConfig.baseUrl}$path'),
       headers: _headers(hasBody: true),
-      body: jsonEncode(<String, Object?>{}),
+      body: jsonEncode(body),
     );
     return _decodeResponse(response);
   }

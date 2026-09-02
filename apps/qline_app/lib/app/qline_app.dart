@@ -22,6 +22,9 @@ import '../features/reservations/presentation/reservation_view_model.dart';
 import '../features/services/data/api_service_repository.dart';
 import '../features/services/presentation/services_screen.dart';
 import '../features/services/presentation/services_view_model.dart';
+import '../features/profile/data/api_profile_repository.dart';
+import '../features/profile/domain/user_profile.dart';
+import '../features/profile/presentation/profile_screen.dart';
 import 'theme/qline_theme.dart';
 
 class QlineApp extends StatefulWidget {
@@ -72,6 +75,20 @@ class _QlineAppState extends State<QlineApp> {
     if (mounted) setState(() => _session = null);
   }
 
+  Future<void> _updateProfile(UserProfile profile) async {
+    final current = _session;
+    if (current == null) return;
+    final updated = AuthSession(
+      accessToken: current.accessToken,
+      userId: profile.id,
+      fullName: profile.fullName,
+      email: profile.email,
+      expiresAt: current.expiresAt,
+    );
+    await _sessionStore.save(updated);
+    _session = updated;
+  }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -108,6 +125,17 @@ class _QlineAppState extends State<QlineApp> {
     return OrganizationsScreen(
       viewModel: OrganizationsViewModel(ApiOrganizationRepository(_apiClient)),
       onLogout: _logout,
+      onProfile: (context) {
+        Navigator.of(context).push(
+          MaterialPageRoute<void>(
+            builder: (_) => ProfileScreen(
+              repository: ApiProfileRepository(_apiClient),
+              onProfileUpdated: _updateProfile,
+              onLogout: _logout,
+            ),
+          ),
+        );
+      },
       onMyReservations: (context) {
         Navigator.of(context).push(
           MaterialPageRoute<void>(

@@ -16,6 +16,10 @@ export class UsersService {
     });
   }
 
+  findById(id: string): Promise<UserEntity | null> {
+    return this.usersRepository.findOne({ where: { id, isActive: true } });
+  }
+
   create(
     fullName: string,
     email: string,
@@ -39,6 +43,11 @@ export class UsersService {
 
   updatePassword(user: UserEntity, passwordHash: string): Promise<UserEntity> {
     user.passwordHash = passwordHash;
+    return this.usersRepository.save(user);
+  }
+
+  updateFullName(user: UserEntity, fullName: string): Promise<UserEntity> {
+    user.fullName = fullName.trim();
     return this.usersRepository.save(user);
   }
 
