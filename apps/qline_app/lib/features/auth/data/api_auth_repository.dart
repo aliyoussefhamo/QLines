@@ -16,8 +16,28 @@ class ApiAuthRepository {
       '/auth/login',
       body: {'email': email.trim(), 'password': password},
     );
+    return _saveSession(response);
+  }
+
+  Future<AuthSession> register({
+    required String fullName,
+    required String email,
+    required String password,
+  }) async {
+    final response = await _apiClient.post(
+      '/auth/register',
+      body: {
+        'fullName': fullName.trim(),
+        'email': email.trim(),
+        'password': password,
+      },
+    );
+    return _saveSession(response);
+  }
+
+  Future<AuthSession> _saveSession(Object? response) async {
     if (response is! Map<String, dynamic>) {
-      throw const FormatException('Invalid login response');
+      throw const FormatException('Invalid authentication response');
     }
     final user = response['user'];
     if (user is! Map<String, dynamic>) {
