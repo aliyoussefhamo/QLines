@@ -6,6 +6,7 @@ import { BranchesService } from '../branches/branches.service';
 import { ReservationEntity } from './entities/reservation.entity';
 import { ReservationStatus } from './models/reservation-status';
 import { ReservationsService } from './reservations.service';
+import { ReservationEventsGateway } from './reservation-events.gateway';
 
 describe('ReservationsService', () => {
   let service: ReservationsService;
@@ -51,6 +52,10 @@ describe('ReservationsService', () => {
               isActive: true,
             }),
           },
+        },
+        {
+          provide: ReservationEventsGateway,
+          useValue: { reservationChanged: jest.fn() },
         },
       ],
     }).compile();

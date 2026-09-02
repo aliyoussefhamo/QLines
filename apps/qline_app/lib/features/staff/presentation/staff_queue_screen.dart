@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/network/api_exception.dart';
+import '../../../core/realtime/reservation_realtime_service.dart';
 import '../data/api_staff_queue_repository.dart';
 import '../domain/staff_queue_item.dart';
 import 'qr_scanner_screen.dart';
@@ -10,12 +11,14 @@ class StaffQueueScreen extends StatefulWidget {
     required this.repository,
     required this.branchId,
     required this.onLogout,
+    required this.realtimeService,
     super.key,
   });
 
   final ApiStaffQueueRepository repository;
   final String branchId;
   final Future<void> Function() onLogout;
+  final ReservationRealtimeService realtimeService;
 
   @override
   State<StaffQueueScreen> createState() => _StaffQueueScreenState();
@@ -31,20 +34,34 @@ class _StaffQueueScreenState extends State<StaffQueueScreen> {
   void initState() {
     super.initState();
     _load();
+    widget.realtimeService.addListener(_refreshFromRealtime);
   }
 
-  Future<void> _load() async {
-    setState(() {
-      _isLoading = true;
-      _error = null;
-    });
+  @override
+  void dispose() {
+    widget.realtimeService.removeListener(_refreshFromRealtime);
+    widget.realtimeService.dispose();
+    super.dispose();
+  }
+
+  void _refreshFromRealtime() {
+    _load(showLoading: false);
+  }
+
+  Future<void> _load({bool showLoading = true}) async {
+    if (showLoading) {
+      setState(() {
+        _isLoading = true;
+        _error = null;
+      });
+    }
     try {
       final items = await widget.repository.getQueue();
       if (mounted) setState(() => _items = items);
     } catch (_) {
       if (mounted) setState(() => _error = 'تعذر تحميل الطابور');
     } finally {
-      if (mounted) setState(() => _isLoading = false);
+      if (mounted && showLoading) setState(() => _isLoading = false);
     }
   }
 

@@ -50,4 +50,15 @@ class MyReservationsViewModel extends ChangeNotifier {
       notifyListeners();
     }
   }
+
+  Future<void> refresh() async {
+    try {
+      reservations = await _repository.findMine();
+      status = MyReservationsStatus.success;
+      errorMessage = null;
+      notifyListeners();
+    } catch (_) {
+      // Keep the last successful state when a background refresh fails.
+    }
+  }
 }

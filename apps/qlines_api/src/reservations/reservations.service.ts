@@ -14,6 +14,7 @@ import { ReservationEntity } from './entities/reservation.entity';
 import { ReservationStatus } from './models/reservation-status';
 import { Reservation } from './models/reservation';
 import { StaffQueueItem } from './models/staff-queue-item';
+import { ReservationEventsGateway } from './reservation-events.gateway';
 
 @Injectable()
 export class ReservationsService {
@@ -22,6 +23,7 @@ export class ReservationsService {
     private readonly reservationsRepository: Repository<ReservationEntity>,
     private readonly branchesService: BranchesService,
     private readonly branchServicesService: BranchServicesService,
+    private readonly eventsGateway: ReservationEventsGateway,
   ) {}
 
   async create(
@@ -79,7 +81,9 @@ export class ReservationsService {
       createdAt,
     });
 
-    return this.toReservation(await this.reservationsRepository.save(entity));
+    const saved = await this.reservationsRepository.save(entity);
+    this.emitChanged(saved);
+    return this.toReservation(saved);
   }
 
   async findByUserId(userId: string): Promise<Reservation[]> {
@@ -103,9 +107,9 @@ export class ReservationsService {
       );
     }
     reservation.status = ReservationStatus.Cancelled;
-    return this.toReservation(
-      await this.reservationsRepository.save(reservation),
-    );
+    const saved = await this.reservationsRepository.save(reservation);
+    this.emitChanged(saved);
+    return this.toReservation(saved);
   }
 
   async verifyQrToken(qrToken: string): Promise<Reservation> {
@@ -162,7 +166,9 @@ export class ReservationsService {
       throw new NotFoundException('There are no checked-in reservations');
     }
     next.status = ReservationStatus.Called;
-    return this.toStaffQueueItem(await this.reservationsRepository.save(next));
+    const saved = await this.reservationsRepository.save(next);
+    this.emitChanged(saved);
+    return this.toStaffQueueItem(saved);
   }
 
   async updateByStaff(
@@ -179,9 +185,9 @@ export class ReservationsService {
       throw new BadRequestException('Only a called reservation can be updated');
     }
     reservation.status = status;
-    return this.toStaffQueueItem(
-      await this.reservationsRepository.save(reservation),
-    );
+    const saved = await this.reservationsRepository.save(reservation);
+    this.emitChanged(saved);
+    return this.toStaffQueueItem(saved);
   }
 
   async checkInByQr(
@@ -204,9 +210,9 @@ export class ReservationsService {
       throw new BadRequestException('Reservation cannot be checked in');
     }
     reservation.status = ReservationStatus.CheckedIn;
-    return this.toStaffQueueItem(
-      await this.reservationsRepository.save(reservation),
-    );
+    const saved = await this.reservationsRepository.save(reservation);
+    this.emitChanged(saved);
+    return this.toStaffQueueItem(saved);
   }
 
   private async findEntityById(
@@ -241,5 +247,12 @@ export class ReservationsService {
       ...this.toReservation(entity),
       serviceName: entity.service.name,
     };
+  }
+
+  private emitChanged(entity: ReservationEntity): void {
+    this.eventsGateway.reservationChanged(entity.userId, entity.branchId, {
+      reservationId: entity.id,
+      status: entity.status,
+    });
   }
 }

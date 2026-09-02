@@ -7,6 +7,7 @@ import { StaffQueueController } from './staff-queue.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ReservationEntity } from './entities/reservation.entity';
 import { AuthModule } from '../auth/auth.module';
+import { ReservationEventsGateway } from './reservation-events.gateway';
 
 @Module({
   imports: [
@@ -16,6 +17,6 @@ import { AuthModule } from '../auth/auth.module';
     BranchServicesModule,
   ],
   controllers: [ReservationsController, StaffQueueController],
-  providers: [ReservationsService],
+  providers: [ReservationsService, ReservationEventsGateway],
 })
 export class ReservationsModule {}

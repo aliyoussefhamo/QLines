@@ -4,11 +4,17 @@ import 'package:qr_flutter/qr_flutter.dart';
 import '../domain/my_reservation.dart';
 import '../domain/queue_ticket.dart';
 import 'my_reservations_view_model.dart';
+import '../../../core/realtime/reservation_realtime_service.dart';
 
 class MyReservationsScreen extends StatefulWidget {
-  const MyReservationsScreen({required this.viewModel, super.key});
+  const MyReservationsScreen({
+    required this.viewModel,
+    required this.realtimeService,
+    super.key,
+  });
 
   final MyReservationsViewModel viewModel;
+  final ReservationRealtimeService realtimeService;
 
   @override
   State<MyReservationsScreen> createState() => _MyReservationsScreenState();
@@ -20,16 +26,23 @@ class _MyReservationsScreenState extends State<MyReservationsScreen> {
     super.initState();
     widget.viewModel.addListener(_refresh);
     widget.viewModel.load();
+    widget.realtimeService.addListener(_refreshFromRealtime);
   }
 
   @override
   void dispose() {
     widget.viewModel.removeListener(_refresh);
     widget.viewModel.dispose();
+    widget.realtimeService.removeListener(_refreshFromRealtime);
+    widget.realtimeService.dispose();
     super.dispose();
   }
 
   void _refresh() => setState(() {});
+
+  void _refreshFromRealtime() {
+    widget.viewModel.refresh();
+  }
 
   @override
   Widget build(BuildContext context) {

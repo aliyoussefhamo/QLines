@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../core/location/distance_calculator.dart';
 import '../core/location/fake_location_service.dart';
 import '../core/network/api_client.dart';
+import '../core/realtime/reservation_realtime_service.dart';
 import '../features/auth/data/api_auth_repository.dart';
 import '../features/auth/data/auth_session_store.dart';
 import '../features/auth/domain/auth_session.dart';
@@ -124,6 +125,7 @@ class _QlineAppState extends State<QlineApp> {
         repository: ApiStaffQueueRepository(_apiClient),
         branchId: _session!.employeeBranchId!,
         onLogout: _logout,
+        realtimeService: ReservationRealtimeService(_session!.accessToken),
       );
     }
     return KeyedSubtree(
@@ -153,6 +155,9 @@ class _QlineAppState extends State<QlineApp> {
             builder: (_) => MyReservationsScreen(
               viewModel: MyReservationsViewModel(
                 ApiMyReservationsRepository(_apiClient),
+              ),
+              realtimeService: ReservationRealtimeService(
+                _session!.accessToken,
               ),
             ),
           ),
