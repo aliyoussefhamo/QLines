@@ -29,6 +29,14 @@ class ApiStaffQueueRepository {
     return _parse(response);
   }
 
+  Future<StaffQueueItem> checkIn(String qrToken) async {
+    final response = await _apiClient.post(
+      '/staff/queue/check-in',
+      body: {'qrToken': qrToken.trim()},
+    );
+    return _parse(response);
+  }
+
   StaffQueueItem _parse(Object? response) {
     if (response is! Map<String, dynamic>) {
       throw const FormatException('Invalid queue item response');

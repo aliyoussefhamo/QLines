@@ -45,6 +45,8 @@ class ApiMyReservationsRepository {
     'called' => TicketStatus.called,
     'completed' => TicketStatus.completed,
     'cancelled' => TicketStatus.cancelled,
+    'checked_in' => TicketStatus.checkedIn,
+    'no_show' => TicketStatus.cancelled,
     _ => throw FormatException('Unknown reservation status: $value'),
   };
 }

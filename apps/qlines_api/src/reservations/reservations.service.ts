@@ -128,7 +128,11 @@ export class ReservationsService {
     const reservations = await this.reservationsRepository.find({
       where: {
         branchId,
-        status: In([ReservationStatus.Waiting, ReservationStatus.Called]),
+        status: In([
+          ReservationStatus.Waiting,
+          ReservationStatus.CheckedIn,
+          ReservationStatus.Called,
+        ]),
       },
       relations: { service: true },
       order: { ticketNumber: 'ASC' },
@@ -147,11 +151,16 @@ export class ReservationsService {
     if (alreadyCalled) return this.toStaffQueueItem(alreadyCalled);
 
     const next = await this.reservationsRepository.findOne({
-      where: { branchId, status: ReservationStatus.Waiting },
+      where: {
+        branchId,
+        status: ReservationStatus.CheckedIn,
+      },
       relations: { service: true },
       order: { ticketNumber: 'ASC' },
     });
-    if (!next) throw new NotFoundException('There are no waiting reservations');
+    if (!next) {
+      throw new NotFoundException('There are no checked-in reservations');
+    }
     next.status = ReservationStatus.Called;
     return this.toStaffQueueItem(await this.reservationsRepository.save(next));
   }
@@ -170,6 +179,31 @@ export class ReservationsService {
       throw new BadRequestException('Only a called reservation can be updated');
     }
     reservation.status = status;
+    return this.toStaffQueueItem(
+      await this.reservationsRepository.save(reservation),
+    );
+  }
+
+  async checkInByQr(
+    branchId: string,
+    qrToken: string,
+  ): Promise<StaffQueueItem> {
+    const reservation = await this.reservationsRepository.findOne({
+      where: { qrToken },
+      relations: { service: true },
+    });
+    if (!reservation || reservation.branchId !== branchId) {
+      throw new NotFoundException(
+        'Reservation QR code is invalid for this branch',
+      );
+    }
+    if (reservation.status === ReservationStatus.CheckedIn) {
+      return this.toStaffQueueItem(reservation);
+    }
+    if (reservation.status !== ReservationStatus.Waiting) {
+      throw new BadRequestException('Reservation cannot be checked in');
+    }
+    reservation.status = ReservationStatus.CheckedIn;
     return this.toStaffQueueItem(
       await this.reservationsRepository.save(reservation),
     );
